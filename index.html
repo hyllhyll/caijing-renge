@@ -61,6 +61,22 @@
   /* 揭晓动画 */
   #loading{display:none;text-align:center;padding-top:80px;animation:fade .3s ease;}
   #loading.active{display:block;}
+  /* 盲盒刮卡 */
+  #scratch{display:none;text-align:center;padding-top:34px;animation:fade .3s ease;}
+  #scratch.active{display:block;}
+  .sb-title{font-size:22px;font-weight:bold;color:var(--gold);}
+  .sb-sub{font-size:13px;color:var(--muted);margin:8px 0 22px;}
+  .sb-wrap{display:flex;justify-content:center;}
+  #scratchCv{border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.45);touch-action:none;cursor:crosshair;max-width:88vw;}
+  .sb-hint{font-size:12px;color:var(--muted);margin-top:16px;}
+  /* 毒舌彩蛋弹幕 */
+  .taunt{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-90px);z-index:90;
+    background:rgba(20,16,8,.94);border:1px solid var(--gold-soft);border-radius:12px;
+    padding:10px 16px;font-size:13px;color:#f3e9d2;max-width:86vw;line-height:1.55;
+    transition:transform .45s cubic-bezier(.2,.9,.3,1.2);box-shadow:0 8px 24px rgba(0,0,0,.5);}
+  .taunt.show{transform:translateX(-50%) translateY(0);}
+  .taunt b{color:var(--gold);}
+  #confettiCv{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:95;}
   .spin{width:64px;height:64px;border:4px solid var(--line);border-top-color:var(--gold);
     border-radius:50%;margin:0 auto 26px;animation:rot .8s linear infinite;}
   @keyframes rot{to{transform:rotate(360deg);}}
@@ -256,7 +272,15 @@
   <section class="screen" id="loading">
     <div class="spin"></div>
     <div class="spin-txt">正在匹配你的财富人格…</div>
-    <div class="spin-sub">翻遍 16 位大佬的账本，找和你最像的那个</div>
+    <div class="spin-sub">翻遍 16 位大佬的账本，把结果装进盲盒</div>
+  </section>
+
+  <!-- 盲盒刮卡页 -->
+  <section class="screen" id="scratch">
+    <div class="sb-title">🎁 盲盒已就位</div>
+    <div class="sb-sub">你的财富人格藏在这里面 · 用手指刮开封面</div>
+    <div class="sb-wrap"><canvas id="scratchCv" width="300" height="400"></canvas></div>
+    <div class="sb-hint">多刮几下 · 刮开一半自动揭晓 🎉</div>
   </section>
 
   <!-- 结果页 -->
@@ -361,6 +385,8 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="taunt" id="taunt"></div>
+<canvas id="confettiCv"></canvas>
 
 <!-- 人物小传弹窗 -->
 <div class="modal" id="bioModal" onclick="if(event.target===this)closeBio()">
@@ -692,16 +718,47 @@ function show(id){
 }
 function reset(){
   idx=0; answers=[];
+  qStart=0; pendingTaunt=null; undoCount=0; tauntUsed=0;   // 毒舌彩蛋状态清零
   try{ localStorage.removeItem('habit_done'); }catch(e){}
   pRaw={R:0,L:0,N:0,I:0,E:0,P:0};
   mRaw={Safe:0,Exp:0,Status:0,Asset:0,Connect:0};
   dRaw={Research:0,Gut:0,Social:0,Avoid:0};
   paRaw={Plan:0,Spend:0,Delay:0};
 }
-function start(){ reset(); show('quiz'); render(); }
+function start(){
+  reset();
+  shuffleDeck();
+  show('quiz'); render();
+}
+/* 题目乱序：封面悬念题（购物车）固定第一题，其余随机洗牌——每次测感觉都不一样 */
+function shuffleDeck(){
+  const teaseIdx = Q.findIndex(q=>q.q.includes('购物车'));
+  const tease = teaseIdx>-1 ? Q.splice(teaseIdx,1)[0] : null;
+  for(let i=Q.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [Q[i],Q[j]]=[Q[j],Q[i]]; }
+  if(tease) Q.unshift(tease);
+}
+
+/* ===== 毒舌彩蛋：检测犹豫时长与撤销次数 ===== */
+let qStart=0, pendingTaunt=null, undoCount=0, tauntUsed=0;
+const TAUNTS_SLOW = [
+  (n,i)=>'这题你纠结了 <b>'+n+' 秒</b>——上个月清购物车的时候，你有这么理性过吗？',
+  (n)=>'巴菲特说过：拿不准就别投。<b>包括这题。</b>',
+  (n,i)=>'<b>第 '+(i+1)+' 题</b>想这么久？你花钱的时候可没见你开这种碰头会。',
+  (n)=>'犹豫了 '+n+' 秒……<b>钱可不等人，你的直觉其实早就选好了。</b>'
+];
+const TAUNT_UNDO = '撤销 <b>3 次</b>了——现实中要也能撤销，你的账户起码多一半年终奖。';
+function showTaunt(html){
+  const t=document.getElementById('taunt');
+  t.innerHTML='🕵️ <b>系统观察员</b>：'+html;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
 
 function render(){
   const q = Q[idx];
+  // 毒舌彩蛋：上一题如果攒了吐槽，这题开头抖出来
+  if(pendingTaunt && tauntUsed<3){ showTaunt(pendingTaunt); tauntUsed++; pendingTaunt=null; }
+  qStart=Date.now();
   document.getElementById('qcount').textContent = '第 '+(idx+1)+' / '+Q.length+' 题';
   document.getElementById('bar').style.width = (idx/Q.length*100)+'%';
   document.getElementById('catTag').innerHTML = '<span class="cat-tag">'+CATNAME[q.cat]+'</span>';
@@ -717,6 +774,11 @@ function render(){
   document.getElementById('undoBtn').classList.toggle('show', idx>0);
 }
 function choose(cat, dim, btn){
+  // 犹豫检测：想超过 7 秒，攒一条毒舌（最多触发 3 条，避免烦人）
+  const elapsed=(Date.now()-qStart)/1000;
+  if(elapsed>7 && !pendingTaunt){
+    pendingTaunt = TAUNTS_SLOW[Math.floor(Math.random()*TAUNTS_SLOW.length)](Math.round(elapsed), idx);
+  }
   tickSound();
   answers.push({cat, dim});
   if(btn){ btn.classList.add('picked'); }
@@ -730,14 +792,16 @@ function choose(cat, dim, btn){
     if(idx<Q.length){ render(); }
     else {
       document.getElementById('bar').style.width='100%';
-      show('loading');                    // 揭晓仪式感
-      setTimeout(finish, 1800);           // 1.8 秒悬念后爆结果
+      show('loading');                    // 短暂悬念
+      setTimeout(finish, 1200);
     }
   }, 160);
 }
 function undoLast(){
   const last = answers.pop();
   if(!last) return;
+  undoCount++;
+  if(undoCount===3 && tauntUsed<3){ pendingTaunt=TAUNT_UNDO; tauntUsed++; }
   const {cat, dim} = last;
   if(cat==='person') pRaw[dim]=Math.max(0,pRaw[dim]-1);
   else if(cat==='m') mRaw[dim]=Math.max(0,mRaw[dim]-1);
@@ -777,7 +841,82 @@ function finish(){
   // B组：取每组最高分为主标签
   const mTop=topKey(mRaw), dTop=topKey(dRaw), pTop=topKey(paRaw);
   renderResult(best, bestSim, runner, user, mTop, dTop, pTop);
+  show('scratch');       // 盲盒刮卡：先别偷看，自己刮开
+  initScratch();
+}
+
+/* ===== 盲盒刮卡 ===== */
+function initScratch(){
+  const cv=document.getElementById('scratchCv');
+  const ctx=cv.getContext('2d');
+  const W=cv.width, H=cv.height;
+  // 金色盲盒封面
+  ctx.globalCompositeOperation='source-over';
+  const g=ctx.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,'#e8c96a'); g.addColorStop(.45,'#c9971f'); g.addColorStop(1,'#8a6508');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  // 封面装饰格纹
+  ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=1;
+  for(let x=-H;x<W;x+=22){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+H,H); ctx.stroke(); }
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(255,255,255,.95)';
+  ctx.font='bold 52px serif';   ctx.fillText('🎁', W/2, H/2-70);
+  ctx.font='bold 24px sans-serif'; ctx.fillText('财富盲盒', W/2, H/2);
+  ctx.font='14px sans-serif'; ctx.fillStyle='rgba(255,255,255,.75)';
+  ctx.fillText('刮开这里 · 看看哪位大佬在等你', W/2, H/2+40);
+  ctx.font='12px sans-serif';
+  ctx.fillText('（刮开约一半自动揭晓）', W/2, H/2+66);
+  let drawing=false, revealed=false, strokes=0;
+  const pos=e=>{ const r=cv.getBoundingClientRect(); const t=e.touches?e.touches[0]:e;
+    return {x:(t.clientX-r.left)*W/r.width, y:(t.clientY-r.top)*H/r.height}; };
+  const check=()=>{ if(revealed) return;
+    const d=ctx.getImageData(0,0,W,H).data; let clear=0, total=0;
+    for(let i=3;i<d.length;i+=64){ total++; if(d[i]===0) clear++; }
+    if(total && clear/total>0.45){ revealed=true; endReveal(); } };
+  const scratchAt=e=>{ if(!drawing||revealed) return; e.preventDefault();
+    const p=pos(e);
+    ctx.globalCompositeOperation='destination-out';
+    ctx.beginPath(); ctx.arc(p.x, p.y, 22, 0, 2*Math.PI); ctx.fill();
+    if(++strokes%5===0) check(); };
+  cv.onpointerdown=e=>{ drawing=true; scratchAt(e); };
+  cv.onpointermove=scratchAt;
+  const stop=()=>{ drawing=false; check(); };
+  cv.onpointerup=stop; cv.onpointerleave=stop;
+}
+function endReveal(){
+  try{ tickSound(); }catch(e){}
   show('result');
+  confetti();
+}
+
+/* ===== 彩带（纯 canvas，零依赖）===== */
+function confetti(){
+  const cv=document.getElementById('confettiCv');
+  const ctx=cv.getContext('2d');
+  cv.width=window.innerWidth; cv.height=window.innerHeight;
+  const colors=['#e8c96a','#b8860b','#e85d5d','#6aa84f','#f3e9d2','#7aa7d8'];
+  const ps=[];
+  for(let i=0;i<130;i++){
+    ps.push({x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.4,
+      w:6+Math.random()*7, h:9+Math.random()*8,
+      c:colors[Math.floor(Math.random()*colors.length)],
+      vy:2.2+Math.random()*3.4, vx:-1.4+Math.random()*2.8,
+      rot:Math.random()*Math.PI, vr:-0.12+Math.random()*0.24});
+  }
+  const t0=Date.now();
+  (function frame(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    const sec=(Date.now()-t0)/1000;
+    ps.forEach(p=>{
+      p.y+=p.vy; p.x+=p.vx+Math.sin(p.y/28); p.rot+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.globalAlpha=Math.max(0, 1-sec/3);
+      ctx.fillStyle=p.c; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      ctx.restore();
+    });
+    if(sec<3){ requestAnimationFrame(frame); }
+    else{ ctx.clearRect(0,0,cv.width,cv.height); }
+  })();
 }
 
 function topKey(raw){
@@ -871,7 +1010,7 @@ function renderResult(c, sim, runner, user, mTop, dTop, pTop){
       item.classList.toggle('done');
       done = hbox.querySelectorAll('.hitem.done').length;
       if(!was){ tickSound(); }
-      if(done===3){ showToast('3 条全点亮！别全做，明天先做第 1 条就赢了 🔥'); }
+      if(done===3){ showToast('3 条全点亮！别全做，明天先做第 1 条就赢了 🔥'); confetti(); }
       updProg();
     };
     hbox.appendChild(item);
