@@ -236,6 +236,33 @@
   .radar-legend{font-size:12px;text-align:center;margin-bottom:10px;}
   .radar-legend .lg-you{color:var(--gold);font-weight:700;}
   .radar-legend .lg-ta{color:#6b6154;font-weight:700;}
+  /* 今日财运签 */
+  .fbtn-wrap{text-align:center;padding:10px 0 4px;}
+  #fortuneBtn{transition:transform .1s;}
+  #fortuneBtn.shaking{animation:fshake .5s ease-in-out;}
+  @keyframes fshake{
+    0%,100%{transform:rotate(0);}
+    20%{transform:rotate(-7deg);} 40%{transform:rotate(7deg);}
+    60%{transform:rotate(-5deg);} 80%{transform:rotate(5deg);}
+  }
+  .fcard{background:linear-gradient(160deg,#fffdf5,#fdf3d8);border:1px solid var(--gold-soft);
+    border-radius:16px;padding:20px 18px;text-align:center;animation:fin .45s ease;}
+  @keyframes fin{from{opacity:0;transform:translateY(14px) scale(.96);}to{opacity:1;transform:none;}}
+  .frank{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold-soft));
+    color:#fff;font-weight:900;font-size:13px;padding:4px 16px;border-radius:999px;letter-spacing:4px;margin-bottom:12px;}
+  .ftext{font-size:17px;line-height:1.8;font-weight:700;margin-bottom:6px;}
+  .fnote{font-size:12px;color:var(--muted);margin-bottom:14px;}
+  .fhabit-label{font-size:12px;color:var(--muted);text-align:left;margin-bottom:6px;}
+  .fhabit-label b{color:var(--gold);}
+  .fdate{font-size:12px;color:var(--muted);margin-top:12px;}
+  /* 隐藏称号 */
+  .tcard{background:linear-gradient(160deg,#2c2416,#4a3a1c);color:#f3e9d2;border-radius:16px;
+    padding:24px 18px;text-align:center;animation:fin .5s ease;}
+  .tbadge{font-size:44px;line-height:1;margin-bottom:10px;}
+  .tname{font-size:20px;font-weight:900;letter-spacing:1px;color:#e8c96a;margin-bottom:8px;}
+  .tdesc{font-size:14px;line-height:1.7;color:#d8ccb4;margin-bottom:12px;}
+  .trare{display:inline-block;border:1px dashed rgba(232,201,106,.55);color:#e8c96a;
+    font-size:12px;padding:4px 14px;border-radius:999px;}
 </style>
 </head>
 <body>
@@ -350,12 +377,22 @@
       <p id="r-script" class="script"></p>
     </div>
 
-    <!-- ③ 实践清单（行动 + 打卡互动） -->
+    <!-- 今日财运签（每天一签，签里藏微习惯） -->
     <div class="block">
-      <h3>明天就能做的 3 件事</h3>
-      <p class="lead">不用变自律，只要换个系统。<b>点点看，能打卡。</b></p>
-      <div class="hprog" id="hprog">已点亮 <b>0</b> / 3</div>
-      <div id="r-habits"></div>
+      <h3>🔮 今日财运签</h3>
+      <p class="lead">每天一签，签文里藏着一个 1 分钟微习惯。<b>不自律，只讨彩头。</b></p>
+      <div id="fortuneBox" class="fbtn-wrap">
+        <button class="btn" id="fortuneBtn" onclick="drawFortune()">求一签 🎋</button>
+      </div>
+    </div>
+
+    <!-- 隐藏称号（行为组合解锁） -->
+    <div class="block">
+      <h3>🏅 隐藏称号</h3>
+      <p class="lead">你的行为组合，悄悄解锁了一个稀有称号。</p>
+      <div id="titleBox" class="fbtn-wrap">
+        <button class="btn ghost" onclick="revealTitle()">点击解锁</button>
+      </div>
     </div>
 
     <!-- 分享海报卡 -->
@@ -865,7 +902,7 @@ function initScratch(){
   ctx.font='14px sans-serif'; ctx.fillStyle='rgba(255,255,255,.75)';
   ctx.fillText('刮开这里 · 看看哪位大佬在等你', W/2, H/2+40);
   ctx.font='12px sans-serif';
-  ctx.fillText('（轻刮两下自动揭晓）', W/2, H/2+66);
+  ctx.fillText('（轻刮 1~2 下自动揭晓）', W/2, H/2+66);
   let drawing=false, revealed=false, strokes=0, strokeEnds=0;
   const pos=e=>{ const r=cv.getBoundingClientRect(); const t=e.touches?e.touches[0]:e;
     return {x:(t.clientX-r.left)*W/r.width, y:(t.clientY-r.top)*H/r.height}; };
@@ -880,8 +917,9 @@ function initScratch(){
     if(++strokes%4===0) check(); };
   cv.onpointerdown=e=>{ drawing=true; scratchAt(e); };
   cv.onpointermove=scratchAt;
-  const stop=()=>{ if(revealed) return; drawing=false; strokeEnds++;
-    if(strokeEnds>=2){ revealed=true; endReveal(); } else check(); };
+  const stop=()=>{ if(revealed||!drawing) return; drawing=false; strokeEnds++;
+    // 划过一道（有实际轨迹）→ 抬手立即揭晓；只是点一下 → 第二下揭晓
+    if(strokes>6 || strokeEnds>=2){ revealed=true; endReveal(); } else check(); };
   cv.onpointerup=stop; cv.onpointerleave=stop;
 }
 function endReveal(){
@@ -992,31 +1030,9 @@ function renderResult(c, sim, runner, user, mTop, dTop, pTop){
   renderBars('bars-motive','desc-motive', mRaw, MOTIVE, mTop, NQ.m);
   renderBars('bars-decide','desc-decide', dRaw, DECIDE, dTop, NQ.d);
   renderBars('bars-pace','desc-pace', paRaw, PACE, pTop, NQ.p);
-  // ③ 打卡清单（可点亮，进度存本地）
-  const habits=[MOTIVE[mTop].habit, DECIDE[dTop].habit, PACE[pTop].habit];
-  const hbox=document.getElementById('r-habits'); hbox.innerHTML='';
-  const prog=document.getElementById('hprog');
-  let done=0;
-  try{ done = (JSON.parse(localStorage.getItem('habit_done')||'0')); if(![0,1,2,3].includes(done)) done=0; }catch(e){ done=0; }
-  const updProg=()=>{
-    prog.innerHTML='已点亮 <b>'+done+'</b> / 3'+(done===3?' · 全点亮了，明天就是第一天 🔥':'');
-    try{ localStorage.setItem('habit_done', JSON.stringify(done)); }catch(e){}
-  };
-  habits.forEach((h,i)=>{
-    const item=document.createElement('div');
-    item.className='hitem'+(i<done?' done':'');
-    item.innerHTML='<span class="hbox"></span><span class="htext">'+h+'</span>';
-    item.onclick=()=>{
-      const was=item.classList.contains('done');
-      item.classList.toggle('done');
-      done = hbox.querySelectorAll('.hitem.done').length;
-      if(!was){ tickSound(); }
-      if(done===3){ showToast('3 条全点亮！别全做，明天先做第 1 条就赢了 🔥'); confetti(); }
-      updProg();
-    };
-    hbox.appendChild(item);
-  });
-  updProg();
+  // ③ 今日财运签 + 隐藏称号
+  setupFortune(c, mTop, dTop, pTop);
+  setupTitle(mTop, dTop, pTop);
   // 分享海报卡
   document.getElementById('s-emoji').textContent=c.emoji;
   document.getElementById('s-name').textContent=c.name;
@@ -1027,6 +1043,125 @@ function renderResult(c, sim, runner, user, mTop, dTop, pTop){
   document.getElementById('s-match').innerHTML='最像 '+c.name+' · 契合 <b>'+dSim+'%</b>';
   drawRadar(user, c);
   try{ localStorage.setItem('wealth_persona', JSON.stringify({name:c.name,sim,mTop,dTop,pTop})); }catch(e){}
+}
+
+/* ===== 今日财运签 ===== */
+const FORTUNES = [
+  {r:'大吉', t:'守得住钱的人，才守得住心。今天你会自然地对一笔冲动消费说"不"。'},
+  {r:'上签', t:'钱喜欢慢的人。今天做任何决定前，多等 10 分钟，财运自动 +1。'},
+  {r:'吉',   t:'你今天的贵人是"三天前没下单的自己"。接着忍，会有回报。'},
+  {r:'上签', t:'今天不宜比价三小时，宜一键买下真正需要的东西。果断就是省。'},
+  {r:'中吉', t:'有小钱进出，无大碍。晚上花 1 分钟看一眼账单，财从明处来。'},
+  {r:'上签', t:'钱包今天在偷偷表扬你。继续保持，别让它失望。'},
+  {r:'吉',   t:'适合整理钱包和收藏夹——删掉的每一个"想要"，都是赚到。'},
+  {r:'大吉', t:'今天的一笔小钱，会花得特别值。大胆把它花在体验上。'},
+  {r:'中签', t:'会有想"报复性消费"的瞬间，深呼吸三次，它会自己走开。'},
+  {r:'上签', t:'今天适合谈钱：报价、要账、砍价，开口的人占便宜。'},
+  {r:'吉',   t:'别人的种草是雾，自己的需求是路。今天看路，别看雾。'},
+  {r:'中吉', t:'账单不会突然袭击你，如果你今天先看了它一眼。'},
+  {r:'上签', t:'存下的每一小笔都在替未来的你打工。今天让它多干一小时。'},
+  {r:'吉',   t:'今天花钱的幸福感，取决于你花之前想了几秒。想三秒，刚刚好。'},
+  {r:'中签', t:'购物车在诱惑你。把它过夜，明早再看，多半不爱了。'},
+  {r:'上签', t:'你的直觉今天在线。第一反应"不需要"的东西，就是不需要。'},
+  {r:'吉',   t:'财运藏在现金里。今天试试用现金/余额付款，痛感即清醒。'},
+  {r:'大吉', t:'今天适合定一个"小到不可能失败"的存钱目标。小即是快。'}
+];
+
+function strHash(s){
+  let h=0;
+  for(let i=0;i<s.length;i++){ h=(h*31 + s.charCodeAt(i))>>>0; }
+  return h;
+}
+function todayKey(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+let fortuneCtx=null; // {c, mTop, dTop, pTop}
+function setupFortune(c, mTop, dTop, pTop){
+  fortuneCtx={c, mTop, dTop, pTop};
+  const box=document.getElementById('fortuneBox');
+  box.innerHTML='<button class="btn" id="fortuneBtn" onclick="drawFortune()">求一签 🎋</button>';
+}
+
+function drawFortune(){
+  if(!fortuneCtx) return;
+  const btn=document.getElementById('fortuneBtn');
+  const box=document.getElementById('fortuneBox');
+  if(btn){
+    btn.classList.add('shaking');
+    try{ tickSound(); }catch(e){}
+    setTimeout(()=>drawFortuneRender(box), 520);
+    return;
+  }
+  drawFortuneRender(box);
+}
+function drawFortuneRender(box){
+  const {c, mTop, dTop, pTop}=fortuneCtx;
+  const dk=todayKey();
+  const seed=strHash(dk + '|' + c.name);
+  const f=FORTUNES[seed % FORTUNES.length];
+  const habits=[MOTIVE[mTop].habit, DECIDE[dTop].habit, PACE[pTop].habit];
+  const habit=habits[seed % 3];
+  const doneKey='fortune_done_'+dk+'_'+c.name;
+  let done=false;
+  try{ done=localStorage.getItem(doneKey)==='1'; }catch(e){}
+  box.innerHTML=
+    '<div class="fcard">'+
+      '<div class="frank">'+f.r+'</div>'+
+      '<div class="ftext">'+f.t+'</div>'+
+      '<div class="fnote">—— '+c.emoji+' '+c.name+' 为你解签 · 每日一签，明天再来</div>'+
+      '<div class="fhabit-label"><b>签中藏的 1 分钟练习</b>（今天做到就点亮）</div>'+
+      '<div class="hitem'+(done?' done':'')+'" id="fhabitItem"><span class="hbox"></span><span class="htext">'+habit+'</span></div>'+
+      '<div class="fdate">'+dk+' · 娱乐向签文，不构成投资建议 😌</div>'+
+    '</div>';
+  document.getElementById('fhabitItem').onclick=function(){
+    const was=this.classList.contains('done');
+    this.classList.toggle('done');
+    try{ localStorage.setItem(doneKey, this.classList.contains('done')?'1':'0'); }catch(e){}
+    if(!was){ try{ tickSound(); }catch(e){} showToast('今日签，点亮 ✨ 明天来抽新的'); confetti(); }
+  };
+}
+
+/* ===== 隐藏称号 ===== */
+const HIDDEN_TITLES = {
+  'Safe|Plan':   {e:'🛡️', n:'金库管理员', d:'先存后花，风险归零。你的账户曲线平滑得让人嫉妒——偶尔也允许自己野一次。'},
+  'Safe|Spend':  {e:'🛡️', n:'矛盾守财侠', d:'一边怕钱飞走，一边忍不住花。你其实在找"花得安心"的理由——找到就无敌。'},
+  'Safe|Delay':  {e:'🛡️', n:'焦虑冬眠者', d:'不敢看、不敢花、不敢算。其实你只是需要一个 10 分钟的"直面仪式"。'},
+  'Exp|Plan':    {e:'🎫', n:'体验策展人', d:'快乐要花，但要花在计划内。你的人生像一场排好片单的电影节。'},
+  'Exp|Spend':   {e:'🎠', n:'当下主义者', d:'你买的不是东西，是活着的证据。人生密度高，只是记得给未来留票根。'},
+  'Exp|Delay':   {e:'🎞️', n:'回忆赊账人', d:'想去的远方一直"以后去"。小心：体验是不会打折等你太久的。'},
+  'Status|Plan': {e:'👑', n:'体面设计师', d:'要面子，更要预算。你证明了"精致"和"有数"可以并存。'},
+  'Status|Spend':{e:'✨', n:'氛围买单机', d:'你买的常常是"被看见的感觉"。商家最爱，复盘时最清醒。'},
+  'Status|Delay':{e:'🎭', n:'鸵鸟面子客', d:'账单可以晚点看，面子不能晚点撑。这个组合最该被温柔提醒。'},
+  'Asset|Plan':  {e:'📈', n:'复利修炼者', d:'钱在你手里有方向感。巴菲特看了你的账单会点头。'},
+  'Asset|Spend': {e:'🎲', n:'机会型玩家', d:'看到"能变多"就想上桌。胆识是资产，波动是租金，记得收着点。'},
+  'Asset|Delay': {e:'🧊', n:'观望神兽', d:'明明懂复利，却总说"再等等"。你的最大成本不是亏，是错过。'},
+  'Connect|Plan':{e:'🍵', n:'人情基金管家', d:'随礼从不肉疼也从不超支。情谊和账目，你两头都照顾到了。'},
+  'Connect|Spend':{e:'🤝', n:'局气供养者', d:'为朋友花钱眼睛都不眨。你的大方别人都记得——也记得给自己留一份。'},
+  'Connect|Delay':{e:'📮', n:'心软赊账人', d:'帮朋友垫钱最积极，看自己账单最拖延。善良要有额度管理。'}
+};
+function setupTitle(mTop, dTop, pTop){
+  const box=document.getElementById('titleBox');
+  box.innerHTML='<button class="btn ghost" onclick="revealTitle()">点击解锁</button>';
+}
+function revealTitle(){
+  if(!fortuneCtx) return;
+  const {mTop, dTop, pTop}=fortuneCtx;
+  const box=document.getElementById('titleBox');
+  let t=HIDDEN_TITLES[mTop+'|'+pTop] || HIDDEN_TITLES[mTop+'|'+dTop];
+  if(!t){ t={e:'🌊', n:'中间地带漫游者', d:'你的各项偏好都很均衡——在钱这件事上，你比大多数人自由。'}; }
+  const rare=((strHash(mTop+'|'+pTop)%1080)+180)/100; // 1.8% ~ 12.6%
+  box.innerHTML=
+    '<div class="tcard">'+
+      '<div class="tbadge">'+t.e+'</div>'+
+      '<div class="tname">'+t.n+'</div>'+
+      '<div class="tdesc">'+t.d+'</div>'+
+      '<div class="trare">据说只有 '+rare.toFixed(1)+'% 的人是这个组合（娱乐数据）</div>'+
+    '</div>';
+  try{ tickSound(); }catch(e){}
+  showToast('隐藏称号解锁：'+t.n+' 🏅');
+  confetti();
 }
 
 function drawRadar(user, c){
