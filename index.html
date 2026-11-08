@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>你的财富人格 · 最像哪位商业人物？</title>
+<style>
+  :root{
+    --ink:#1f1b16; --gold:#b8860b; --gold-soft:#d9a441; --paper:#fbf7ef;
+    --card:#ffffff; --line:#e6dcc8; --muted:#8a7f6c; --accent:#9c2b2b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:linear-gradient(160deg,#fbf7ef 0%,#f3ead7 100%);
+    color:var(--ink); line-height:1.7; min-height:100vh;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:22px 18px 48px;}
+  .screen{display:none;animation:fade .35s ease;}
+  .screen.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .badge{display:inline-block;font-size:12px;color:var(--gold);border:1px solid var(--gold-soft);
+    border-radius:999px;padding:3px 12px;letter-spacing:1px;margin-bottom:14px;}
+  h1{font-size:25px;line-height:1.4;margin:6px 0 10px;font-weight:800;}
+  h2{font-size:20px;margin:0 0 14px;font-weight:800;}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:22px;}
+  .btn{
+    display:block;width:100%;border:none;border-radius:14px;padding:15px;
+    font-size:17px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-soft) 100%);
+    color:#fff;box-shadow:0 6px 18px rgba(184,134,11,.28);transition:transform .12s;
+  }
+  .btn:active{transform:scale(.98);}
+  .btn.ghost{background:#fff;color:var(--gold);border:1px solid var(--gold-soft);box-shadow:none;}
+  .note{font-size:12px;color:var(--muted);margin-top:14px;text-align:center;}
+
+  /* quiz */
+  .prog{height:8px;background:var(--line);border-radius:999px;overflow:hidden;margin-bottom:18px;}
+  .prog > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold-soft));transition:width .3s;}
+  .qcount{font-size:13px;color:var(--muted);margin-bottom:6px;}
+  .qtext{font-size:19px;font-weight:700;margin-bottom:20px;min-height:54px;}
+  .opt{
+    display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);
+    border-radius:14px;padding:15px 16px;margin-bottom:12px;font-size:16px;cursor:pointer;
+    transition:.15s;color:var(--ink);
+  }
+  .opt:active{transform:scale(.99);}
+  .opt:hover{border-color:var(--gold-soft);background:#fffdf8;}
+  .cat-tag{display:inline-block;font-size:11px;color:var(--gold);border:1px solid var(--gold-soft);
+    border-radius:6px;padding:1px 7px;margin-bottom:10px;}
+  .opt.picked{border-color:var(--gold);background:#fff6e0;transform:scale(.97);
+    box-shadow:0 0 0 3px rgba(184,134,11,.18);}
+  .quiz-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .snd-btn{background:none;border:1px solid var(--line);border-radius:999px;width:34px;height:34px;
+    font-size:15px;cursor:pointer;line-height:1;color:var(--muted);}
+  .snd-btn.off{opacity:.45;}
+  .undo-btn{display:none;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;
+    padding:8px 4px;margin-top:4px;text-decoration:underline dotted;}
+  .undo-btn.show{display:block;}
+
+  /* 揭晓动画 */
+  #loading{display:none;text-align:center;padding-top:80px;animation:fade .3s ease;}
+  #loading.active{display:block;}
+  .spin{width:64px;height:64px;border:4px solid var(--line);border-top-color:var(--gold);
+    border-radius:50%;margin:0 auto 26px;animation:rot .8s linear infinite;}
+  @keyframes rot{to{transform:rotate(360deg);}}
+  .spin-txt{font-size:16px;font-weight:700;color:var(--ink);}
+  .spin-sub{font-size:13px;color:var(--muted);margin-top:6px;}
+
+  .runner{font-size:13px;color:var(--muted);text-align:center;margin-top:10px;}
+  .runner b{color:var(--gold);}
+
+  /* result */
+  .res-hero{background:linear-gradient(135deg,#2b2722,#3d352b);color:#fbf7ef;border-radius:20px;
+    padding:24px 20px;text-align:center;box-shadow:0 10px 30px rgba(43,39,34,.3);}
+  .res-hero .era{font-size:13px;color:var(--gold-soft);letter-spacing:2px;}
+  .res-hero .cemoji{font-size:46px;line-height:1;margin:8px 0 2px;}
+  .res-hero .cname{font-size:34px;font-weight:900;margin:2px 0;}
+  .res-hero .ctitle{font-size:14px;color:#e9dcc0;}
+  .match{margin-top:14px;font-size:14px;color:#e9dcc0;}
+  .match b{font-size:30px;color:var(--gold-soft);font-weight:900;}
+  canvas{display:block;margin:18px auto 6px;max-width:100%;}
+  .dim-legend{font-size:12px;color:var(--muted);text-align:center;margin-bottom:10px;}
+  .block{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:16px;}
+  .block h3{margin:0 0 10px;font-size:16px;color:var(--gold);}
+  .block .lead{font-size:13px;color:var(--muted);margin:-4px 0 12px;}
+  .block p{margin:0 0 8px;font-size:15px;}
+  .quote-block{background:linear-gradient(135deg,#2b2722,#3d352b);color:#fbf7ef;border-radius:16px;
+    padding:20px 18px;margin-top:16px;text-align:center;}
+  .quote-block .q-mark{font-size:28px;color:var(--gold-soft);line-height:1;}
+  .quote-block .q-text{font-size:19px;font-weight:800;line-height:1.6;margin:8px 0 4px;}
+  .quote-block .q-from{font-size:12px;color:#b8ab90;}
+  .tips li{margin-bottom:10px;font-size:15px;}
+  .tips li b{color:var(--accent);}
+  .bridge{background:#fffaf0;border-left:3px solid var(--gold-soft);padding:10px 12px;border-radius:0 10px 10px 0;
+    font-size:14px;margin-top:12px;color:var(--ink);}
+  .bridge b{color:var(--gold);}
+  .story{background:#fffaf0;border-left:3px solid var(--accent);padding:10px 12px;
+    border-radius:0 10px 10px 0;font-size:14px;margin-top:10px;color:var(--ink);}
+  .story b{color:var(--accent);}
+  .script{font-size:15px;line-height:1.9;}
+
+  /* 条形图 */
+  .bars{margin:4px 0 6px;}
+  .bar{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:13px;}
+  .bar .bl{width:62px;color:var(--muted);flex-shrink:0;text-align:right;}
+  .bar .bt{flex:1;height:13px;background:var(--line);border-radius:999px;overflow:hidden;}
+  .bar .bf{display:block;height:100%;background:linear-gradient(90deg,var(--gold-soft),var(--gold));border-radius:999px;transition:width .5s;}
+  .bar .bp{width:42px;text-align:right;color:var(--ink);font-weight:700;flex-shrink:0;}
+  .bar.top .bl{color:var(--gold);font-weight:800;}
+  .bar.top .bf{background:linear-gradient(90deg,var(--accent),var(--gold));}
+  .tag-desc{font-size:14px;line-height:1.75;margin-top:8px;border-top:1px dashed var(--line);padding-top:10px;}
+  .tag-desc .root,.tag-desc .blind{color:var(--muted);font-size:13px;}
+  .tag-desc b{color:var(--accent);}
+  .hl{background:linear-gradient(135deg,var(--gold) 0%,var(--gold-soft) 100%);color:#fff;
+    border-radius:8px;padding:2px 8px;font-weight:700;}
+
+  /* 分享海报卡 */
+  .scard{background:linear-gradient(160deg,#2b2722 0%,#3d352b 60%,#4a3f30 100%);
+    border-radius:20px;padding:28px 22px 22px;margin-top:18px;text-align:center;color:#fbf7ef;
+    box-shadow:0 10px 30px rgba(43,39,34,.35);position:relative;overflow:hidden;}
+  .scard::before{content:'';position:absolute;top:-40px;right:-40px;width:130px;height:130px;
+    border-radius:50%;background:radial-gradient(circle,rgba(217,164,65,.18),transparent 70%);}
+  .scard .sc-emoji{font-size:52px;line-height:1;margin-bottom:8px;}
+  .scard .s1{font-size:12px;color:#b8ab90;letter-spacing:3px;}
+  .scard .s2{font-size:32px;font-weight:900;margin:4px 0 2px;color:#f5e9cf;}
+  .scard .sc-era{font-size:12px;color:#b8ab90;letter-spacing:1px;}
+  .scard .sc-quote{font-size:17px;font-weight:700;line-height:1.7;margin:16px 8px;color:#fff;
+    position:relative;}
+  .scard .sc-quote::before{content:'「';color:var(--gold-soft);font-size:20px;margin-right:2px;}
+  .scard .sc-quote::after{content:'」';color:var(--gold-soft);font-size:20px;margin-left:2px;}
+  .scard .sc-div{width:44px;height:2px;background:var(--gold-soft);margin:14px auto;border-radius:2px;}
+  .scard .sc-tags{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .scard .sc-tags span{font-size:12px;border:1px solid rgba(217,164,65,.55);color:#e9dcc0;
+    border-radius:999px;padding:3px 11px;}
+  .scard .sc-match{font-size:13px;color:#b8ab90;margin-bottom:12px;}
+  .scard .sc-match b{font-size:22px;color:var(--gold-soft);font-weight:900;}
+  .scard .sc-foot{font-size:11px;color:#8a7f6c;border-top:1px dashed rgba(217,164,65,.3);
+    padding-top:12px;letter-spacing:1px;}
+  .row{display:flex;gap:12px;margin-top:18px;}
+  .row .btn{flex:1;}
+  .toast{position:fixed;left:50%;bottom:36px;transform:translateX(-50%) translateY(20px);
+    background:#2b2722;color:#fbf7ef;font-size:14px;padding:11px 20px;border-radius:999px;
+    opacity:0;pointer-events:none;transition:.3s;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.25);white-space:nowrap;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .footer{font-size:11px;color:var(--muted);text-align:center;margin-top:26px;line-height:1.6;}
+
+  /* ===== 封面增强 ===== */
+  .hero-emojis{display:flex;justify-content:center;gap:10px;margin:2px 0 18px;font-size:30px;}
+  .hero-emojis span{display:inline-block;animation:float 3.2s ease-in-out infinite;}
+  .hero-emojis span:nth-child(2){animation-delay:.35s;}
+  .hero-emojis span:nth-child(3){animation-delay:.7s;}
+  .hero-emojis span:nth-child(4){animation-delay:1.05s;}
+  .hero-emojis span:nth-child(5){animation-delay:1.4s;}
+  @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+  .q-chip{background:#fff;border:1px dashed var(--gold-soft);border-radius:12px;
+    padding:10px 14px;font-size:14px;color:var(--ink);margin-bottom:16px;text-align:center;}
+  .q-chip b{color:var(--gold);}
+  .lineup-title{font-size:13px;color:var(--muted);margin:22px 0 10px;text-align:center;}
+  .lineup{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
+  .lcell{background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 4px;
+    text-align:center;cursor:pointer;transition:.15s;}
+  .lcell:hover{border-color:var(--gold-soft);background:#fffdf8;transform:translateY(-2px);}
+  .lcell:active{transform:scale(.96);}
+  .lcell .le{font-size:22px;line-height:1.2;}
+  .lcell .ln{font-size:11px;color:var(--muted);margin-top:2px;}
+  .lineup-note{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;}
+
+  /* ===== 人物小传弹窗（手机底部抽屉风）===== */
+  .modal{position:fixed;inset:0;background:rgba(31,27,22,.55);display:none;
+    align-items:flex-end;justify-content:center;z-index:100;}
+  .modal.show{display:flex;}
+  .mcard{background:var(--paper);width:100%;max-width:520px;border-radius:22px 22px 0 0;
+    padding:26px 22px 32px;max-height:82vh;overflow-y:auto;animation:up .28s ease;
+    box-shadow:0 -12px 40px rgba(0,0,0,.25);}
+  @keyframes up{from{transform:translateY(46px);opacity:0;}to{transform:none;opacity:1;}}
+  .mcard .m-close{position:absolute;right:18px;top:16px;width:32px;height:32px;border:none;
+    background:var(--line);border-radius:50%;font-size:15px;cursor:pointer;color:var(--muted);line-height:1;}
+  .mcard{position:relative;}
+  .m-head{text-align:center;margin-bottom:14px;}
+  .m-head .me{font-size:44px;line-height:1;}
+  .m-head .mn{font-size:26px;font-weight:900;margin-top:4px;cursor:pointer;}
+  .m-head .mt{font-size:13px;color:var(--muted);letter-spacing:1px;}
+  .mbio{font-size:15px;line-height:1.85;}
+  .mbio p{margin:0 0 10px;}
+  .mquote{background:linear-gradient(135deg,#2b2722,#3d352b);color:#f5e9cf;border-radius:14px;
+    padding:14px 16px;margin-top:14px;text-align:center;font-size:15px;font-weight:700;}
+  .mquote small{display:block;font-weight:400;font-size:11px;color:#b8ab90;margin-top:4px;}
+
+  /* 结果页：名字可点 */
+  .cname{cursor:pointer;}
+  .cname:active{transform:scale(.98);}
+  .name-hint{font-size:11px;color:#b8ab90;margin-top:2px;}
+  .run-link{cursor:pointer;border-bottom:1px dashed var(--gold-soft);}
+
+  /* ===== v4：速读卡 / 折叠区 / 打卡清单 / 双多边形图例 ===== */
+  .hero-tags{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .hero-tags span{font-size:12px;border:1px solid rgba(217,164,65,.55);color:#e9dcc0;
+    border-radius:999px;padding:3px 11px;}
+  .verdict{font-size:12px;color:#b8ab90;margin-top:8px;}
+  details.block{padding:0;overflow:hidden;}
+  details.block summary{padding:16px 18px;cursor:pointer;font-size:16px;font-weight:800;
+    color:var(--gold);list-style:none;display:flex;justify-content:space-between;align-items:center;}
+  details.block summary::-webkit-details-marker{display:none;}
+  details.block summary::after{content:'▾';color:var(--muted);font-size:14px;}
+  details.block[open] summary::after{content:'▴';}
+  details.block .dbody{padding:0 18px 18px;}
+  .dsum-hint{font-size:11px;color:var(--muted);font-weight:400;}
+  .hprog{font-size:13px;color:var(--muted);text-align:right;margin-bottom:8px;}
+  .hprog b{color:var(--gold);}
+  .hitem{display:flex;align-items:flex-start;gap:12px;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:13px 14px;margin-bottom:10px;cursor:pointer;transition:.15s;}
+  .hitem:hover{border-color:var(--gold-soft);}
+  .hitem .hbox{width:22px;height:22px;flex-shrink:0;border:2px solid var(--gold-soft);
+    border-radius:7px;line-height:20px;text-align:center;font-size:14px;color:#fff;transition:.15s;}
+  .hitem.done .hbox{background:linear-gradient(135deg,var(--gold),var(--gold-soft));border-color:var(--gold);}
+  .hitem.done .hbox::after{content:'✓';font-weight:900;}
+  .hitem.done .htext{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--gold-soft);}
+  .htext{font-size:15px;line-height:1.6;}
+  .radar-legend{font-size:12px;text-align:center;margin-bottom:10px;}
+  .radar-legend .lg-you{color:var(--gold);font-weight:700;}
+  .radar-legend .lg-ta{color:#6b6154;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 介绍页 -->
+  <section class="screen active" id="intro">
+    <span class="badge">财富人格测试</span>
+    <div class="hero-emojis" id="heroEmojis"></div>
+    <h1>你的财富人格，<br>最像哪位商业人物？</h1>
+    <p class="sub">19 道情境题，约 5 分钟。没有对错，只有暴露——我们会照出你<b>怎么花钱、为什么这么花、日常怎么练</b>。</p>
+    <div class="q-chip">「打开你的购物车，最上面躺着的是？」<br><b>——第一道题就不让你装</b></div>
+    <button class="btn" onclick="start()">开始测试 →</button>
+    <p class="note">按第一直觉选，别想"哪个听起来更好"——结果才像你。<br>仅供娱乐与自我探索，不构成任何投资或职业建议。</p>
+    <div class="lineup-title">先偷看一眼，16 位大佬都在这儿 · 点头像认识 TA</div>
+    <div class="lineup" id="lineup"></div>
+    <div class="lineup-note">剧透警告：测出来的人和你想当的人，多半不是同一个 😏</div>
+  </section>
+
+  <!-- 答题页 -->
+  <section class="screen" id="quiz">
+    <div class="quiz-top">
+      <div class="qcount" id="qcount"></div>
+      <button class="snd-btn" id="sndBtn" onclick="toggleSound()" title="音效开关">🔊</button>
+    </div>
+    <div class="prog"><i id="bar"></i></div>
+    <div id="catTag"></div>
+    <div class="qtext" id="qtext"></div>
+    <div id="opts"></div>
+    <button class="undo-btn" id="undoBtn" onclick="undoLast()">← 点错了，返回上一题</button>
+  </section>
+
+  <!-- 揭晓过渡页 -->
+  <section class="screen" id="loading">
+    <div class="spin"></div>
+    <div class="spin-txt">正在匹配你的财富人格…</div>
+    <div class="spin-sub">翻遍 16 位大佬的账本，找和你最像的那个</div>
+  </section>
+
+  <!-- 结果页 -->
+  <section class="screen" id="result">
+
+    <!-- ① 人物卡（钩子） -->
+    <div class="res-hero">
+      <div class="era" id="r-era"></div>
+      <div class="cemoji" id="r-emoji"></div>
+      <div class="cname" id="r-name" onclick="openBio(this.textContent)"></div>
+      <div class="name-hint">👆 点名字，认识一下 TA</div>
+      <div class="ctitle" id="r-title"></div>
+      <div class="match">契合度 <b id="r-match"></b></div>
+      <div class="hero-tags" id="r-tags"></div>
+      <div class="verdict" id="r-verdict"></div>
+      <div class="runner" id="r-runner"></div>
+    </div>
+
+    <!-- 金句 -->
+    <div class="quote-block">
+      <div class="q-mark">"</div>
+      <div class="q-text" id="r-quote"></div>
+      <div class="q-from" id="r-qfrom"></div>
+    </div>
+
+    <canvas id="radar" width="320" height="320"></canvas>
+    <div class="radar-legend"><span class="lg-you">—— 实线：你</span> ｜ <span class="lg-ta">- - 虚线：TA</span>　（重合越多越像）</div>
+    <div class="block">
+      <h3>你和 TA 像在哪</h3>
+      <p id="r-desc"></p>
+      <div class="bridge" id="r-bridge"></div>
+      <div class="story" id="r-story"></div>
+    </div>
+
+    <!-- ② 消费行为画像（核心，可折叠） -->
+    <details class="block" open>
+      <summary>① 你的消费动机 <span class="dsum-hint">6 题 · 点开/收起</span></summary>
+      <div class="dbody">
+        <p class="lead">你为什么花钱？哪条最像你。</p>
+        <div class="bars" id="bars-motive"></div>
+        <div class="tag-desc" id="desc-motive"></div>
+      </div>
+    </details>
+
+    <details class="block">
+      <summary>② 你的决策模式 <span class="dsum-hint">5 题 · 点开看</span></summary>
+      <div class="dbody">
+        <p class="lead">你怎么决定花这笔钱？</p>
+        <div class="bars" id="bars-decide"></div>
+        <div class="tag-desc" id="desc-decide"></div>
+      </div>
+    </details>
+
+    <details class="block">
+      <summary>③ 你的用钱节奏 <span class="dsum-hint">4 题 · 点开看</span></summary>
+      <div class="dbody">
+        <p class="lead">你花钱的时机感是怎样的？</p>
+        <div class="bars" id="bars-pace"></div>
+        <div class="tag-desc" id="desc-pace"></div>
+      </div>
+    </details>
+
+    <!-- 金钱剧本（深度叙事） -->
+    <div class="block">
+      <h3>你的金钱剧本</h3>
+      <p class="lead">消费动机 × 用钱节奏，组合出你正在演的故事。</p>
+      <p id="r-script" class="script"></p>
+    </div>
+
+    <!-- ③ 实践清单（行动 + 打卡互动） -->
+    <div class="block">
+      <h3>明天就能做的 3 件事</h3>
+      <p class="lead">不用变自律，只要换个系统。<b>点点看，能打卡。</b></p>
+      <div class="hprog" id="hprog">已点亮 <b>0</b> / 3</div>
+      <div id="r-habits"></div>
+    </div>
+
+    <!-- 分享海报卡 -->
+    <div class="scard" id="scard">
+      <div class="sc-emoji" id="s-emoji"></div>
+      <div class="s1">我的财富人格是</div>
+      <div class="s2" id="s-name"></div>
+      <div class="sc-era" id="s-era"></div>
+      <div class="sc-quote" id="s-quote"></div>
+      <div class="sc-div"></div>
+      <div class="sc-tags" id="s-tags"></div>
+      <div class="sc-match" id="s-match"></div>
+      <div class="sc-foot">测测你最像哪位商业人物 · 仅供娱乐</div>
+    </div>
+
+    <div class="row">
+      <button class="btn ghost" onclick="restart()">再测一次</button>
+      <button class="btn" onclick="shareCard()">截图分享 / 复制链接</button>
+    </div>
+
+    <div class="footer">
+      本测试由 AI 辅助生成 · 仅供娱乐与自我探索参考，不替代专业测评。<br>
+      结果保存在你自己的浏览器本地，不会上传任何信息。
+    </div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 人物小传弹窗 -->
+<div class="modal" id="bioModal" onclick="if(event.target===this)closeBio()">
+  <div class="mcard">
+    <button class="m-close" onclick="closeBio()">✕</button>
+    <div class="m-head">
+      <div class="me" id="m-emoji"></div>
+      <div class="mn" id="m-name"></div>
+      <div class="mt" id="m-era"></div>
+    </div>
+    <div class="mbio" id="m-bio"></div>
+    <div class="mquote" id="m-quote"></div>
+  </div>
+</div>
+
+<script>
+/* ===== A组 · 人物匹配维度（只匹配商业人物）===== */
+const DIMS = [
+  {k:'R', name:'风险偏好'},
+  {k:'L', name:'长期主义'},
+  {k:'N', name:'人脉经营'},
+  {k:'I', name:'创新突破'},
+  {k:'E', name:'执行落地'},
+  {k:'P', name:'稳健守恒'}
+];
+/* 维度 → 缝合文案短语 */
+const DIMPHRASE = {
+  R:'敢下重注的胆量', L:'看得长远的眼光', N:'把人聚起来的本事',
+  I:'爱折腾新东西的劲头', E:'把事落地的执行力', P:'稳得住的定力'
+};
+
+/* ===== B组 · 消费行为维度文案 ===== */
+const MOTIVE = {
+  Safe:    {name:'安全型',str:'你是全组最抗风险的人——意外来临时，慌的不是你。',str:'你是全组最抗风险的人——意外来临时，慌的不是你。',str:'你是全组最抗风险的人——意外来临时，慌的不是你。', desc:'你花钱第一反应是"先稳住"——存钱、保险、备用金让你安心。',
+            root:'你可能在保护一种"不被生活措手不及"的安全感。', blind:'太怕风险，会错过让钱动起来的机会。',
+            habit:'每月工资到账，先自动转存 10%，剩下的再花。'},
+  Exp:     {name:'体验型',str:'你的人生密度高——同样一年，你的记忆点是别人的两倍。',str:'你的人生密度高——同样一年，你的记忆点是别人的两倍。',str:'你的人生密度高——同样一年，你的记忆点是别人的两倍。', desc:'你为"经历"买单多过"东西"——旅行、课程、演出，花在这些上你最不后悔。',
+            root:'你怕的不是没钱，是"白活"。', blind:'体验太多，容易攒不下本金。',
+            habit:'给"体验消费"设月度上限，超了就等下个月。'},
+  Status:  {name:'身份型',str:'你有品位判断力，知道什么值什么不值，这是选品时的硬通货。',str:'你有品位判断力，知道什么值什么不值，这是选品时的硬通货。',str:'你有品位判断力，知道什么值什么不值，这是选品时的硬通货。', desc:'你用消费定义自己——要拿得出手、显得有眼光。',
+            root:'你渴望被看见、被认可。', blind:'容易为"面子"透支，买完才觉得空虚。',
+            habit:'下单前问自己一句：是我真想要，还是想给别人看？'},
+  Asset:   {name:'资产型',str:'你天然懂复利思维，钱在你手里有方向感。',str:'你天然懂复利思维，钱在你手里有方向感。',str:'你天然懂复利思维，钱在你手里有方向感。', desc:'你花钱总想着"它能不能变多"——理财、小生意是你的快乐源泉。',
+            root:'你把"增长"当成安全感。', blind:'容易过度乐观，忽视波动。',
+            habit:'每笔投资前写一句"最坏会怎样"，先想亏再想赚。'},
+  Connect: {name:'连接型',str:'你的人缘是真资产——关键时刻总有人拉你一把。',str:'你的人缘是真资产——关键时刻总有人拉你一把。',str:'你的人缘是真资产——关键时刻总有人拉你一把。', desc:'你为关系花钱最舍得——送礼、请客、帮朋友，一点不心疼。',
+            root:'你用付出去维系归属感。', blind:'忘了给自己留，容易变成讨好型支出。',
+            habit:'人情支出单列一笔预算，超了就坦诚说"这月紧"。'}
+};
+const DECIDE = {
+  Research:{name:'研究型',str:'你几乎不踩坑，省下的智商税就是隐形收入。',str:'你几乎不踩坑，省下的智商税就是隐形收入。',str:'你几乎不踩坑，省下的智商税就是隐形收入。', desc:'不查清楚你不放心。优点是不踩坑，缺点是有时想太久错过时机。',
+            root:'你厌恶不确定，要掌控感。', blind:'过度研究 = 拖延，好机会悄悄溜走。',
+            habit:'给"研究"设个时限，比如 3 天，到了就决策。'},
+  Gut:     {name:'直觉型',str:'你决策快、不内耗，机会来时你永远是先出手的人。',str:'你决策快、不内耗，机会来时你永远是先出手的人。',str:'你决策快、不内耗，机会来时你永远是先出手的人。', desc:'信感觉，下手快。优点是不内耗，缺点是偶尔冲动买错。',
+            root:'你信自己的判断，讨厌纠结。', blind:'凭感觉容易忽略隐藏成本。',
+            habit:'超过 200 块的东西，强制等 24 小时再付款。'},
+  Social:  {name:'从众型',str:'你信息面广、有人带路，试错成本比单干低。',str:'你信息面广、有人带路，试错成本比单干低。',str:'你信息面广、有人带路，试错成本比单干低。', desc:'大家买你就心动。优点有人带不孤单，缺点是容易跟风花冤枉钱。',
+            root:'你怕掉队，需要群体认同。', blind:'常常为"大家都在买"买单。',
+            habit:'被安利时先问：是我需要，还是怕掉队？'},
+  Avoid:   {name:'回避型',str:'你心态松弛，不容易被市场情绪带崩。',str:'你心态松弛，不容易被市场情绪带崩。',str:'你心态松弛，不容易被市场情绪带崩。', desc:'账单能不看就不看。短期轻松，长期却容易爆雷。',
+            root:'你可能对数字有焦虑，或觉得"看也没用"。', blind:'问题只会越拖越大。',
+            habit:'每周固定 10 分钟，看一眼余额和账单。'}
+};
+const PACE = {
+  Plan:   {name:'规划型',str:'你财务底盘稳，是朋友圈里最让人放心的那个人。',str:'你财务底盘稳，是朋友圈里最让人放心的那个人。',str:'你财务底盘稳，是朋友圈里最让人放心的那个人。', desc:'你先存后花、心里有数。这是稀缺能力，请保持。',
+           root:'你把"可控"当安心。', blind:'把生活过成账本，会失去一点弹性。',
+           habit:'给"快乐钱"也留一小笔，别把自己逼太紧。'},
+  Spend:  {name:'冲动型',str:'你有行动力和生命力，敢花的人往往也敢赚。',str:'你有行动力和生命力，敢花的人往往也敢赚。',str:'你有行动力和生命力，敢花的人往往也敢赚。', desc:'当下开心最重要。活力满满，但容易月底吃土。',
+           root:'你常用消费来奖励或安抚自己。', blind:'非理性支出累积成负担。',
+           habit:'非必需品先丢进购物车，冷静 48 小时再付。'},
+  Delay:  {name:'拖延型',str:'你压力阈值高，不被账单绑架的心态其实很稀缺。',str:'你压力阈值高，不被账单绑架的心态其实很稀缺。',str:'你压力阈值高，不被账单绑架的心态其实很稀缺。', desc:'财务能拖就拖。这是最该改的一类——小问题会拖成大坑。',
+           root:'你可能对数字有焦虑，或总说"以后再说"。', blind:'逾期、滞纳金、信用损耗悄悄发生。',
+           habit:'设每月 1 号自动还账单，并看一眼当月账单。'}
+};
+
+/* ===== 人物真实故事（结果页"TA 的一个真实故事"段）===== */
+const STORY = {
+  '巴菲特': '他至今住在 1958 年花 3 万美元买的房子里，开旧车、喝可乐——但为"对的公司"一掷几十亿。启示：省下来的钱是子弹，不是委屈；在真正重要的判断上，别抠门。',
+  '芒格': '他一生只重仓过寥寥几家公司，大部分时间都在读书，自称脑子里装着上百个思维模型。启示：慢决策不是拖延，是先把功课做足——但要设截止日，别让研究变成另一种拖延。',
+  '贝索斯': '1997 年亚马逊上市起，他每年股东信都讲同一个"飞轮"，前十几年都在亏，没人喝彩。启示：长期计划中途一定孤独，提前把"没人鼓掌的预算"算进去。',
+  '马斯克': '2008 年火箭三连炸、特斯拉濒临破产，他把自己最后的钱全押进去，第四次发射成功。启示：敢 all in 的前提，是算过"输了还能重来几次"。',
+  '乔布斯': '他重回苹果后砍掉 70% 的产品线，只留四款，把公司救活。启示：少买、买对，比多买、买便宜更省钱——清单越短，执行力越强。',
+  '比尔·盖茨': '他每年读 50 本书，坚持"思考周"：独自进小屋闭关读论文一整周。启示：给自己的钱也安排"思考周"，每季度留一天只复盘、不消费。',
+  '达里奥': '1982 年他公开看错市场，公司几乎清盘只剩他一人。此后他把每次错误写成"原则"，再没栽过同一个坑。启示：把你的踩坑经历记下来，那是别人抄不走的资产。',
+  '索罗斯': '1992 年做空英镑前，团队为要不要加大仓位争论，他拍板："当我们对的时候，要下重注。"启示：机会真来时别只敢试水——前提是你真做足了功课。',
+  '孙正义': '创业前他列了 40 个行业的清单逐项打分，才选定软银的方向。启示：愿景不是拍脑袋，是筛出来的——你的"想买清单"也可以这么筛。',
+  '彼得·林奇': '他在商场看到蛋形包装的丝袜卖爆，调研后果断重仓，赚了数倍。启示：你的生活观察就是调研优势——但光看到不够，要查证再出手。',
+  '洛克菲勒': '他给炼油厂算成本能精确到一个油桶用几滴焊料。启示：记账不是抠门，是给"该花的地方"腾预算。',
+  '格雷厄姆': '1929 年大崩盘他几乎破产，痛定思痛写出《证券分析》，从此"先想亏"刻进每笔决策。启示：亏过的地方要变成规则，而不是伤疤。',
+  '曹德旺': '他创业前卖过烟丝水果、拉过板车，一天挣三块钱；后来把一片玻璃做到世界第一，捐出上百亿。启示：起点低不决定什么，守住"只赚踏实钱"这条线，时间就站你这边。',
+  '段永平': '40 岁他放下如日中天的步步高去美国陪家人，只给公司留下"本分"两个字。启示：知道什么时候够了，是比"更多"更难的能力。',
+  '张磊': '他把耶鲁给的 3000 万美元全投进腾讯，当时所有人都觉得他疯了。启示：看准了就别撒芝麻——分散是对没把握的补偿，重仓是对做足功课的尊重。',
+  '雷军': '40 岁他本可功成身退，却创办小米；55 岁再押造车，SU7 一炮而红。启示：风口要等，但翅膀要提前做——你现在攒的每个习惯，都是翅膀。'
+};
+
+/* ===== 金钱剧本（动机×节奏 15 组合叙事， Psychology 式深读）===== */
+const SCRIPT = {
+  'Safe|Plan': '你是"守门员型"——钱先进保险箱再说话，月月有结余，安全感拉满。要警惕的不是冒险，是"稳得太均匀"：给体验和关系也留一笔预算，别让账户数字替代了生活本身。',
+  'Safe|Spend': '你一边怕不够，一边忍不住花——月初存钱月底破功，像在跟自己拔河。根源是安全感还没到位时，你在用即时满足补洞。先定一个"存到多少就安心"的具体数字，冲动会自己降温。',
+  'Safe|Delay': '你心里全是要稳的打算，但执行总差最后一步——该存的钱拖着没转，该看的账单懒得点开。你的风险不是乱花，是"计划烂尾"。解法是自动化：自动转存、自动还款，绕过你自己。',
+  'Exp|Plan': '你是"精打细算的体验派"——为一场演出攒三个月，但每一分都花在刀刃上。这是最健康的组合之一。唯一提醒：体验清单别排太满，留白也是生活。',
+  'Exp|Spend': '你活在当下，为经历买单从不眨眼，账户余额像过山车。你不缺快乐，缺的是"快乐的上限"。给体验设个月度额度，超了就等下个月——体验不会跑，本金会跑光。',
+  'Exp|Delay': '你想去的远方一直躺在收藏夹，想学的东西"下次一定"。你不怕花钱，是怕启动。挑一件最小的体验，本周内完成支付——体验型最怕的不是错买，是空想。',
+  'Status|Plan': '你买"拿得出手"的东西但从不失控，每笔面子支出都在预算内。你的风险更隐蔽：为身份花的钱会悄悄升级——五年后的"标配"比今天贵一档。定期问自己：这个标准是我定的，还是圈层定的？',
+  'Status|Spend': '你最容易被打折、限量、稀缺点燃，买完爽三天，然后是空虚。你渴望被看见——但真正的被看见很少靠物件达成。下单前等 24 小时，大部分"必须买"会自己消失。',
+  'Status|Delay': '你在意形象，但拖延让钱花得不是时候——该投资形象的没投，冲动补买的又贵。你的功课是把"面子预算"明确列出来：该花时痛快花，不该花时一眼关掉。',
+  'Asset|Plan': '你是"系统型增长者"——钱按计划滚动，目标清晰，复利思维是天生的。你已经跑赢大多数人。唯一提醒：增长不是生活的全部，别让年化收益率偷走你的体验配额。',
+  'Asset|Spend': '你想让钱生钱，又忍不住即时消费，投资账户和消费欲在互相打架。先堵漏再谈收益：把"冲动额度"固定成小额，剩下的钱才轮得到复利。',
+  'Asset|Delay': '你对"让钱变多"有兴趣，但一直停在"改天研究"。这是最亏的组合——不是亏在花，是亏在时间。从最小动作开始：今天设一笔自动定投，金额小到不会心疼。',
+  'Connect|Plan': '你为人情花钱从不心疼，但都有预算——人缘和财务的双赢组合。提醒：别把"预算内"当成社交义务的挡箭牌，偶尔为重要的人大方一次，也是投资。',
+  'Connect|Spend': '你用请客和送礼维系感情，散财如流水，月底才想起自己。你的慷慨是真的，但讨好型支出也是真的。给关系支出单列预算——超了就坦诚说"这月紧"，真朋友不会因此离开。',
+  'Connect|Delay': '你在关系上舍得，但自己的账务能拖就拖——总在帮别人处理事情，唯独没处理自己的。先把自己的自动还款设好，再去当那个靠谱的朋友。'
+};
+
+/* ===== 人物库（数值 0-100，代表该维度典型强度）=====
+   emoji: 视觉锚点（海报用）；quote: 一句话毒舌金句（分享引擎）*/
+const CHARS = [
+  {name:'巴菲特', emoji:'🐢', era:'美国 · 价值投资', title:'用耐心打败市场的老人', s:{R:30,L:98,N:55,I:60,E:70,P:95},
+    quote:'别人恐慌你在存钱，别人剁手你在记账——无聊，但富。',
+    desc:'你像巴菲特——别人贪婪时你在记账，别人剁手时你在存钱。你信复利胜过信运气，愿意为对的判断等上十年。扎心的是：这条路前期毫无掌声，账户数字和朋友圈一样安静。托底的是：复利最公平，你熬的每一天都在算数。'},
+  {name:'芒格', emoji:'🧠', era:'美国 · 多元思维', title:'多学科视角的认知玩家', s:{R:35,L:95,N:50,I:85,E:60,P:90},
+    quote:'你买杯奶茶都想三层逻辑，买完还要复盘为什么买。',
+    desc:'你像芒格——买杯奶茶都要想三层逻辑，买完还要复盘为什么买。你的武器不是消息灵通，是脑子里那堆跨学科的思维模型。扎心的是：想得太透，有时会错过"不假思索"的快乐。托底的是：你踩的坑比别人少，省下的都是净赚。'},
+  {name:'贝索斯', emoji:'🛒', era:'美国 · 亚马逊', title:'用飞轮换长期统治的耐心狂', s:{R:60,L:95,N:60,I:75,E:85,P:55},
+    quote:'别人赚快钱，你在下一盘三年后才有人看懂的棋。',
+    desc:'你像贝索斯——别人赚快钱，你在下一盘三年后才有人看懂的棋。你愿意忍受当下的"不划算"，去换长期的大把握。扎心的是：中途没人给你鼓掌，质疑声倒是天天有。托底的是：飞轮一旦转起来，后面全是惯性。'},
+  {name:'马斯克', emoji:'🚀', era:'美国 · 特斯拉', title:'第一性原理的豪赌者', s:{R:95,L:80,N:50,I:98,E:90,P:25},
+    quote:'你的购物车一半是理想，另一半是理想的原材料。',
+    desc:'你像马斯克——你的购物车一半是理想，另一半是理想的原材料。你敢把大部分筹码押在别人觉得"不可能"的事上。扎心的是：你摔过的跟头，多数都是自己主动跳的。托底的是：你怕的从来不是输，是"本来可以"。'},
+  {name:'乔布斯', emoji:'🍎', era:'美国 · 苹果', title:'把产品做到极致的偏执狂', s:{R:55,L:80,N:55,I:95,E:85,P:45},
+    quote:'你不买最多的，只买最对的——少即是多，贵即是值。',
+    desc:'你像乔布斯——你不买最多的，只买最对的。宁可少要，也要那件"对的东西"。扎心的是：你的"偏执"偶尔会被当成挑剔。托底的是：时间会证明，你的眼光省下的钱比折扣多。'},
+  {name:'比尔·盖茨', emoji:'💻', era:'美国 · 微软', title:'用洞察重构行业的杠杆者', s:{R:50,L:85,N:60,I:92,E:90,P:65},
+    quote:'你花钱像写代码：想得深，下手狠，还永远留备份。',
+    desc:'你像盖茨——花钱像写代码：想得深、下手狠，还永远留一份备份。你信杠杆，也信复利，总在找"投入一次、收益多次"的事。扎心的是：算得太精，浪漫预算经常为零。托底的是：你建的是系统，不是运气。'},
+  {name:'达里奥', emoji:'⚙️', era:'美国 · 桥水', title:'把原则写成系统的工程师', s:{R:45,L:90,N:55,I:80,E:80,P:85},
+    quote:'你的钱跟着原则走，情绪想插嘴都没机会。',
+    desc:'你像达里奥——你的钱跟着原则走，情绪想插嘴都没机会。你把决策写成清单，用流程对抗冲动。扎心的是：朋友觉得你活得像台精密仪器。托底的是：市场发疯的时候，你睡得最稳。'},
+  {name:'索罗斯', emoji:'🐺', era:'美国 · 宏观对冲', title:'押注宏观拐点的反身玩家', s:{R:90,L:70,N:75,I:70,E:70,P:35},
+    quote:'你专挑别人犯错的时候出手——冷静得让人害怕。',
+    desc:'你像索罗斯——你专挑别人犯错的时候出手，冷静得让人害怕。你不追热点，你等热点崩。扎心的是：逆着人群走，孤独是常态。托底的是：你最值钱的，是耐心和信息差。'},
+  {name:'孙正义', emoji:'🎲', era:'日本 · 软银', title:'用愿景下注未来的赌徒', s:{R:90,L:85,N:70,I:75,E:70,P:30},
+    quote:'你敢为一个看不懂的未来，押上看得起的一切。',
+    desc:'你像孙正义——你敢为一个看不懂的未来，押上看得起的一切。你的账本分两栏："现在能花的"和"未来能赢的"。扎心的是：愿景和泡沫只隔一层纸。托底的是：敢下注的人，才有资格谈运气。'},
+  {name:'彼得·林奇', emoji:'🛍️', era:'美国 · 富达', title:'在身边找十倍股的散户之友', s:{R:50,L:80,N:50,I:65,E:70,P:70},
+    quote:'你的十倍股，藏在超市货架和外卖软件里。',
+    desc:'你像彼得·林奇——你的十倍股就藏在超市货架和外卖软件里。你只投看得懂的生意，看不懂的给多少钱都不碰。扎心的是：你错过过很多"听不懂但暴涨"的故事。托底的是：你兜里的每一分钱，都说得清来路。'},
+  {name:'洛克菲勒', emoji:'🛢️', era:'美国 · 标准石油', title:'用效率和规模碾压实业的巨头', s:{R:55,L:90,N:70,I:55,E:90,P:70},
+    quote:'你信一分钱省出来的利润，也信规模化滚出来的雪球。',
+    desc:'你像洛克菲勒——你信一分钱省出来的利润，也信规模化滚出来的雪球。你对成本敏感得近乎苛刻，但该投的从不含糊。扎心的是：偶尔会被说"算得太细"。托底的是：细节里藏着的利润，别人看不见。'},
+  {name:'格雷厄姆', emoji:'🛡️', era:'美国 · 价值投资之父', title:'用安全边际兜底的理性派', s:{R:25,L:90,N:40,I:55,E:60,P:93},
+    quote:'宁可错过一千次，绝不买贵一次。',
+    desc:'你像格雷厄姆——宁可错过一千次，也绝不买贵一次。安全边际是你花钱的底线：先想怎么不亏，再想能赚多少。扎心的是：牛市里你永远是"保守的那个人"。托底的是：潮水退去时，你还在岸上。'},
+  {name:'曹德旺', emoji:'🏭', era:'中国 · 实业家', title:'四十年磨一片玻璃的专注者', s:{R:45,L:90,N:55,I:50,E:95,P:85},
+    quote:'一件事做四十年，别人笑你轴，你笑他没看懂时间。',
+    desc:'你像曹德旺——一件事做四十年，别人笑你轴，你笑他没看懂时间。你不碰看不懂的生意，赚的都是"辛苦但踏实"的钱。扎心的是：你的复利来得慢，慢到让人怀疑。托底的是：风口换了一茬又一茬，你还在。'},
+  {name:'段永平', emoji:'⚖️', era:'中国 · 投资人', title:'重仓好公司"本分"的长期派', s:{R:40,L:95,N:65,I:65,E:80,P:88},
+    quote:'你懂的招式不多，但每一招都用了十年。',
+    desc:'你像段永平——你懂的招式不多，但每一招都用了十年。"本分"是你的底色：不赚快钱、不碰不懂、看准就重仓。扎心的是：你的策略无聊到没法发朋友圈。托底的是：无聊，但富。'},
+  {name:'张磊', emoji:'⏳', era:'中国 · 高瓴', title:'做时间朋友的长线资本操盘手', s:{R:40,L:95,N:70,I:65,E:75,P:75},
+    quote:'你是时间的朋友，是短线客的噩梦。',
+    desc:'你像张磊——你是时间的朋友，是短线客的噩梦。你愿意陪一件事从青涩长到盛大，中途的诱惑很难撼动你。扎心的是：等待期里你看起来像在原地踏步。托底的是：长期主义者的奖励，都发在最后。'},
+  {name:'雷军', emoji:'🌪️', era:'中国 · 小米', title:'顺势而为的性价比实干家', s:{R:55,L:80,N:80,I:75,E:90,P:55},
+    quote:'你等风来，但风来之前你把翅膀先做好了。',
+    desc:'你像雷军——你等风来，但风来之前你把翅膀先做好了。你会借势、会攒人、会把性价比算到极致。扎心的是：你容易被"风口"牵着多操心。托底的是：你的成功一半靠趋势，另一半靠你配得上趋势。'}
+];
+
+/* ===== 人物小传（点名字弹出的"认识 TA"）=====
+   p1: 他是谁/出身；p2: 干了什么大事；quote: 最有代表性的一句话 */
+const BIO = {
+  '巴菲特': {p1:'美国"奥马哈先知"，伯克希尔·哈撒韦创始人。11 岁买下人生第一只股票，从送报纸攒钱开始，一步步变成世界最富有的人之一。', p2:'他一辈子住在美国小城，不追热点、不碰科技泡沫，只做一件事：用合理的价格买好公司，然后拿几十年。可口可乐他持了三十多年。', quote:'别人贪婪时我恐惧，别人恐惧时我贪婪。—— 巴菲特'},
+  '芒格': {p1:'巴菲特一生的合伙人和"军师"。原来是律师，40 岁才正式转型投资，靠一套"多元思维模型"闻名于世。', p2:'他主张别用单一学科看世界——数学、心理学、历史都得懂一点。他和巴菲特的搭档，把一家小纺织厂做成了千亿帝国。', quote:'反过来想，总是反过来想。—— 芒格'},
+  '贝索斯': {p1:'亚马逊创始人。1994 年从华尔街辞职，在自家车库开网店卖书，当时所有人都不看好。', p2:'他用"飞轮效应"把亚马逊从书店滚成电商帝国，又顺手做了云计算（AWS）和蓝色起源火箭公司。世界首富的位置他坐过很多年。', quote:'你的品牌，就是不在场时别人对你的评价。—— 贝索斯'},
+  '马斯克': {p1:'特斯拉、SpaceX、X（原推特）的掌门人。南非出生，辗转加拿大到硅谷创业。', p2:'他专挑"不可能"下手：造电动车、回收火箭、埋脑机接口。几次差点公司破产，也几次把不可能变成现实，是当代最具争议的颠覆者。', quote:'如果一件事足够重要，即使胜算不大也要去做。—— 马斯克'},
+  '乔布斯': {p1:'苹果公司联合创始人。被自己创办的公司赶出去过，12 年后又回来，把苹果从破产边缘救活。', p2:'他用 iPhone 重新定义了手机，用"少即是多"的偏执定义了苹果美学。他对产品细节的苛刻，是教科书级案例。', quote:'Stay hungry, stay foolish.（求知若饥，虚心若愚）—— 乔布斯'},
+  '比尔·盖茨': {p1:'微软联合创始人，19 岁从哈佛退学创业，让 Windows 进入了全世界每一个家庭。', p2:'他当了十几年世界首富，后半生把重心转向慈善，成立盖茨基金会，专攻疫苗、疟疾和教育，承诺把大部分财富捐出去。', quote:'成功是个糟糕的老师，它让聪明人以为自己不会输。—— 比尔·盖茨'},
+  '达里奥': {p1:'全球最大对冲基金"桥水"的创始人。1975 年在自己公寓里创办，后来管理规模超过千亿美元。', p2:'他最出名的不是战绩，而是把决策全部写成《原则》，用系统和流程对抗人性弱点。他自己说，桥水的成功一半靠这套机制。', quote:'痛苦 + 反思 = 进步。—— 达里奥'},
+  '索罗斯': {p1:'宏观对冲传奇，"1992 年击垮英格兰银行的人"——那一场做空英镑，他一天赚了 10 亿美元。', p2:'他是匈牙利难民出身，靠奖学金到伦敦求学，白手起家。晚年投身慈善和开放社会事业，捐出数十亿美元。', quote:'重要的不是对错，而是对时赚多少、错时亏多少。—— 索罗斯'},
+  '孙正义': {p1:'日本软银集团创始人，韩裔日本人。19 岁时规划出"人生 50 年蓝图"，之后基本照着执行。', p2:'他用"时间机器理论"押注互联网，2000 年投资阿里巴巴 2000 万美元，涨成两千多亿。他也踩过 WeWork 等巨坑——愿景派的两面他都经历过。', quote:'人生只有一次，我想做让世界震动的事。—— 孙正义'},
+  '彼得·林奇': {p1:'美国富达麦哲伦基金经理，13 年间年化收益约 29%，被称为"散户之友"。', p2:'他的投资哲学特别接地气：牛股就藏在你身边——超市里卖爆的产品、商场排队的店，都可能是十倍股。他自己逛商场时都在做调研。', quote:'不研究基本面就买股票，是拿钱赌博。—— 彼得·林奇'},
+  '洛克菲勒': {p1:'美国标准石油创始人，人类历史上第一位亿万富翁。', p2:'他靠极致的成本控制和规模效应，垄断了美国九成炼油业；晚年又成为最慷慨的慈善家，捐资建立了芝加哥大学和协和医学院。', quote:'省钱是积累财富的第一步。—— 洛克菲勒'},
+  '格雷厄姆': {p1:'"价值投资之父"，巴菲特的老师。1929 年大崩盘中几乎破产，痛定思痛写出了《证券分析》。', p2:'他发明了"安全边际"——先想清楚怎么不亏，再想能赚多少。这套思想影响了之后一百年几乎所有价值投资者。', quote:'市场短期是投票机，长期是称重机。—— 格雷厄姆'},
+  '曹德旺': {p1:'福耀玻璃创始人，被称为"中国首善"。从卖水果、拉板车起步，9 岁才上学，14 岁被迫辍学。', p2:'他把一片汽车玻璃做到了世界第一，全球每三辆车就有一辆用福耀玻璃。累计捐款超过百亿，却坚持"不碰金融、不碰房地产"。', quote:'我不是在做玻璃，我是在做人。—— 曹德旺'},
+  '段永平': {p1:'步步高创始人——OPPO、vivo、小霸王都出自他手，被称为"背后的男人"。', p2:'40 岁退休移居美国转做投资，网易 0.8 美元时重仓，茅台底部抄底，战绩封神。他的"本分"哲学被无数创业者奉为圭臬。', quote:'本分，就是不赚不该赚的钱。—— 段永平'},
+  '张磊': {p1:'高瓴资本创始人。中国人民大学毕业后到耶鲁求学，靠耶鲁捐赠基金的 3000 万美元起步。', p2:'他提出"做时间的朋友"，重仓腾讯、京东、格力，把高瓴做成了亚洲最大投资机构之一。长期主义因他成了中文投资圈的流行语。', quote:'与谁同行，比要去的远方更重要。—— 张磊'},
+  '雷军': {p1:'小米创始人，圈内出名的"劳模"。28 岁当上金山 CEO，40 岁创办小米。', p2:'他把"性价比"做到极致，用互联网思维改造手机业；50 岁后押注造车，小米 SU7 一炮而红。"风口上的猪"就是他说的。', quote:'站在风口上，猪都能飞起来。—— 雷军'}
+};
+
+/* ===== 题库（19 题，每题 4 选项，每题只打一个维度）=====
+   cat: m=消费动机 / d=决策模式 / p=用钱节奏 / person=人物锚点
+   设计原则：不暗示"哪个更好"，暴露真实行为；节奏类(p)只有 3 种典型倾向，故为 3 选项。 */
+const Q = [
+  // —— 动机 6 题 ——
+  {cat:'m', q:'打开你的购物车/收藏夹，最上面躺着的是？', o:[
+    {t:'比价到一半的日用品，等凑单降价', dim:'Safe'},
+    {t:'一张演出票或一趟旅行的预订', dim:'Exp'},
+    {t:'一件"贵但值得"的心头好', dim:'Status'},
+    {t:'一个工具年费或一门理财课', dim:'Asset'} ]},
+  {cat:'m', q:'手头突然多出 5000 块，钱还没捂热，你会先花在哪？', o:[
+    {t:'转进存款/理财，先落袋为安', dim:'Safe'},
+    {t:'订一场想了好久的旅行或体验', dim:'Exp'},
+    {t:'添件"拿得出手"的东西', dim:'Status'},
+    {t:'研究个小机会让它生钱', dim:'Asset'} ]},
+  {cat:'m', q:'朋友结婚/生日，你送礼更在意？', o:[
+    {t:'实用、对方真用得上', dim:'Safe'},
+    {t:'一起吃喝玩乐的体验礼物', dim:'Exp'},
+    {t:'包装体面、拿得出手', dim:'Status'},
+    {t:'关系到位、心意到了就行，重在维系', dim:'Connect'} ]},
+  {cat:'m', q:'朋友圈有人晒了让你心动的东西，你的手指会？', o:[
+    {t:'先收藏，想想是不是刚需', dim:'Safe'},
+    {t:'已经点进链接了', dim:'Exp'},
+    {t:'拍照发圈问问"值不值这个价"', dim:'Status'},
+    {t:'顺手@那个也想要的朋友，拼一单', dim:'Connect'} ]},
+  {cat:'m', q:'你更愿意为什么花大钱？', o:[
+    {t:'保险、体检，稳住底盘', dim:'Safe'},
+    {t:'旅行、演出、学习体验', dim:'Exp'},
+    {t:'能提升形象和圈层的东西', dim:'Status'},
+    {t:'让钱继续生钱的机会', dim:'Asset'} ]},
+  {cat:'m', q:'倒计时 30 分钟的"限时折扣"弹出来，你的身体比脑子快吗？', o:[
+    {t:'先算原价多少、是不是真需要，省到才动', dim:'Safe'},
+    {t:'怕错过体验，已经下单了', dim:'Exp'},
+    {t:'"限量"两个字让我想抢', dim:'Status'},
+    {t:'拉群喊朋友一起拼，人情+省钱', dim:'Connect'} ]},
+
+  // —— 决策 5 题 ——
+  {cat:'d', q:'买贵重大件（手机/电脑/大家电）前，你？', o:[
+    {t:'先查评测、比三家', dim:'Research'},
+    {t:'看中了就买，信自己眼光', dim:'Gut'},
+    {t:'看博主/朋友推荐再决定', dim:'Social'},
+    {t:'能拖就拖，用到坏了再说', dim:'Avoid'} ]},
+  {cat:'d', q:'朋友疯狂安利你买某样东西，你？', o:[
+    {t:'自己再去查资料验证', dim:'Research'},
+    {t:'既然 ta 说好，那就试试', dim:'Gut'},
+    {t:'大家都买，那我也买', dim:'Social'},
+    {t:'假装听懂，其实不想面对', dim:'Avoid'} ]},
+  {cat:'d', q:'收到账单发现花超了，你的第一动作是？', o:[
+    {t:'立刻复盘哪超了，记下来', dim:'Research'},
+    {t:'算了下月再说，先爽完', dim:'Gut'},
+    {t:'怪自己没忍住跟风', dim:'Social'},
+    {t:'不想看，把 App 藏起来', dim:'Avoid'} ]},
+  {cat:'d', q:'面对"要不要办会员/订阅"，你？', o:[
+    {t:'算回本周期再决定', dim:'Research'},
+    {t:'现在用得上就办', dim:'Gut'},
+    {t:'朋友都办了我也办', dim:'Social'},
+    {t:'拖着，过期了才发现没用', dim:'Avoid'} ]},
+  {cat:'d', q:'理财/投资信息你主要信？', o:[
+    {t:'自己读财报、看数据', dim:'Research'},
+    {t:'凭直觉和胆量', dim:'Gut'},
+    {t:'大V、社群、朋友消息', dim:'Social'},
+    {t:'懒得看，交给别人或不管', dim:'Avoid'} ]},
+
+  // —— 节奏 4 题（3 选项）——
+  {cat:'p', q:'月底回想这个月花了多少，你的真实状态是？', o:[
+    {t:'大概数说得出来，心里有账', dim:'Plan'},
+    {t:'完全没概念，花完拉倒', dim:'Spend'},
+    {t:'想记但一直没开始', dim:'Delay'} ]},
+  {cat:'p', q:'想买非必需品时，你？', o:[
+    {t:'列进清单，等发工资再买', dim:'Plan'},
+    {t:'立刻买，错过难受', dim:'Spend'},
+    {t:'先放着，过两周再看', dim:'Delay'} ]},
+  {cat:'p', q:'信用卡/花呗还款，你？', o:[
+    {t:'按时还，从不逾期', dim:'Plan'},
+    {t:'又刷了，缺口越来越大', dim:'Spend'},
+    {t:'拖到最后一天才还', dim:'Delay'} ]},
+  {cat:'p', q:'"财务规划"这件事，你？', o:[
+    {t:'有年度储蓄/目标安排', dim:'Plan'},
+    {t:'走一步算一步', dim:'Spend'},
+    {t:'知道该做，但一直没顾上', dim:'Delay'} ]},
+
+  // —— 人物锚点 4 题（只用于匹配商业人物）——
+  {cat:'person', q:'一个项目可能大赚也可能大亏，你？', o:[
+    {t:'全押搏一把', dim:'R'},
+    {t:'拉人一起分担风险', dim:'N'},
+    {t:'看长期价值，等得起', dim:'L'},
+    {t:'先保本，不亏再说', dim:'P'} ]},
+  {cat:'person', q:'你更佩服哪种人？', o:[
+    {t:'用新玩法颠覆行业的', dim:'I'},
+    {t:'把想法一步步落地的', dim:'E'},
+    {t:'能聚起一帮人一起干的', dim:'N'},
+    {t:'沉住气熬过周期的', dim:'L'} ]},
+  {cat:'person', q:'行业被颠覆，你第一反应？', o:[
+    {t:'自己也去搞点新东西', dim:'I'},
+    {t:'冒险转赛道', dim:'R'},
+    {t:'提前布局下一个风口', dim:'L'},
+    {t:'守住基本盘，不瞎动', dim:'P'} ]},
+  {cat:'person', q:'赚到第一桶金后，你？', o:[
+    {t:'拿去扩大人脉和盘子', dim:'N'},
+    {t:'再投进去滚雪球', dim:'L'},
+    {t:'做件踏实的事证明自己', dim:'E'},
+    {t:'守住，不飘', dim:'P'} ]}
+];
+
+/* ===== 状态与逻辑 ===== */
+let idx = 0;
+let answers = [];   // 撤销用：记录每题 {cat, dim}
+let pRaw = {R:0,L:0,N:0,I:0,E:0,P:0};
+let mRaw = {Safe:0,Exp:0,Status:0,Asset:0,Connect:0};
+let dRaw = {Research:0,Gut:0,Social:0,Avoid:0};
+let paRaw = {Plan:0,Spend:0,Delay:0};
+
+const CATNAME = {m:'消费动机', d:'决策模式', p:'用钱节奏', person:'人物锚点'};
+
+/* ===== 音效（WebAudio，无外部文件）===== */
+let soundOn = true;
+let audioCtx = null;
+function tickSound(){
+  if(!soundOn) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type='sine'; o.frequency.value=740;
+    g.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.14);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime+0.15);
+  }catch(e){}
+}
+function toggleSound(){
+  soundOn = !soundOn;
+  const b=document.getElementById('sndBtn');
+  b.textContent = soundOn ? '🔊' : '🔇';
+  b.classList.toggle('off', !soundOn);
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function reset(){
+  idx=0; answers=[];
+  try{ localStorage.removeItem('habit_done'); }catch(e){}
+  pRaw={R:0,L:0,N:0,I:0,E:0,P:0};
+  mRaw={Safe:0,Exp:0,Status:0,Asset:0,Connect:0};
+  dRaw={Research:0,Gut:0,Social:0,Avoid:0};
+  paRaw={Plan:0,Spend:0,Delay:0};
+}
+function start(){ reset(); show('quiz'); render(); }
+
+function render(){
+  const q = Q[idx];
+  document.getElementById('qcount').textContent = '第 '+(idx+1)+' / '+Q.length+' 题';
+  document.getElementById('bar').style.width = (idx/Q.length*100)+'%';
+  document.getElementById('catTag').innerHTML = '<span class="cat-tag">'+CATNAME[q.cat]+'</span>';
+  document.getElementById('qtext').textContent = q.q;
+  const box = document.getElementById('opts'); box.innerHTML='';
+  q.o.forEach((opt)=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.textContent=opt.t;
+    b.onclick=()=>choose(q.cat, opt.dim, b);
+    box.appendChild(b);
+  });
+  // 撤销按钮：第 2 题起显示
+  document.getElementById('undoBtn').classList.toggle('show', idx>0);
+}
+function choose(cat, dim, btn){
+  tickSound();
+  answers.push({cat, dim});
+  if(btn){ btn.classList.add('picked'); }
+  // 给点击反馈留 160ms，再切下一题
+  setTimeout(()=>{
+    if(cat==='person') pRaw[dim]+=1;
+    else if(cat==='m') mRaw[dim]+=1;
+    else if(cat==='d') dRaw[dim]+=1;
+    else if(cat==='p') paRaw[dim]+=1;
+    idx++;
+    if(idx<Q.length){ render(); }
+    else {
+      document.getElementById('bar').style.width='100%';
+      show('loading');                    // 揭晓仪式感
+      setTimeout(finish, 1800);           // 1.8 秒悬念后爆结果
+    }
+  }, 160);
+}
+function undoLast(){
+  const last = answers.pop();
+  if(!last) return;
+  const {cat, dim} = last;
+  if(cat==='person') pRaw[dim]=Math.max(0,pRaw[dim]-1);
+  else if(cat==='m') mRaw[dim]=Math.max(0,mRaw[dim]-1);
+  else if(cat==='d') dRaw[dim]=Math.max(0,dRaw[dim]-1);
+  else if(cat==='p') paRaw[dim]=Math.max(0,paRaw[dim]-1);
+  idx--;
+  render();
+}
+
+/* 人物维度每题每维最多 +1，统计每维最大可能值用于归一化 */
+const PMAX = {R:0,L:0,N:0,I:0,E:0,P:0};
+Q.filter(q=>q.cat==='person').forEach(q=>{
+  const seen={};
+  q.o.forEach(o=>{ if(!seen[o.dim]){ seen[o.dim]=1; PMAX[o.dim]++; } });
+});
+
+/* 契合度显示映射：真实分布约 35~75，直接显示会只有 40~55% 显得不准。
+   映射到 68~95 的可信区间（16P/MBTI 系网站通行做法），排序不变。 */
+function mapSim(raw){
+  const v = 68 + (raw-35)/(75-35)*27;
+  return Math.round(Math.max(66, Math.min(97, v)));
+}
+
+function finish(){
+  // A组：归一化到 0-100
+  const user={};
+  DIMS.forEach(d=>{ const m=PMAX[d.k]||1; user[d.k]=Math.min(100, Math.round((pRaw[d.k]/m)*100)); });
+  // 与每个人物算相似度
+  const maxDist = Math.sqrt(DIMS.length*100*100);
+  const sims = CHARS.map(c=>{
+    let d2=0;
+    DIMS.forEach(dim=>{ const diff=user[dim.k]-c.s[dim.k]; d2+=diff*diff; });
+    return {c, sim:Math.round(100*(1-Math.sqrt(d2)/maxDist))};
+  }).sort((a,b)=>b.sim-a.sim);
+  const best = sims[0].c, bestSim = sims[0].sim;
+  const runner = sims[1];   // 第二名
+  // B组：取每组最高分为主标签
+  const mTop=topKey(mRaw), dTop=topKey(dRaw), pTop=topKey(paRaw);
+  renderResult(best, bestSim, runner, user, mTop, dTop, pTop);
+  show('result');
+}
+
+function topKey(raw){
+  let best=null, bv=-1;
+  for(const k in raw){ if(raw[k]>bv){ bv=raw[k]; best=k; } }
+  return best || Object.keys(raw)[0];
+}
+function pct(raw, k){
+  const sum=Object.values(raw).reduce((a,b)=>a+b,0);
+  return sum? Math.round(raw[k]/sum*100) : 0;
+}
+function renderBars(barsId, descId, raw, DATA, topKey, numQ){
+  const c=document.getElementById(barsId); c.innerHTML='';
+  Object.keys(DATA).forEach(k=>{
+    const n=raw[k]||0;
+    const p=Math.round(n/numQ*100);
+    const div=document.createElement('div');
+    div.className='bar'+(k===topKey?' top':'');
+    div.innerHTML='<span class="bl">'+DATA[k].name+'</span>'+
+      '<span class="bt"><span class="bf" style="width:'+p+'%"></span></span>'+
+      '<span class="bp">'+n+'/'+numQ+'</span>';
+    c.appendChild(div);
+  });
+  const d=DATA[topKey];
+  const second=Object.keys(DATA).sort((a,b)=>(raw[b]||0)-(raw[a]||0))[1];
+  const d2=DATA[second];
+  document.getElementById(descId).innerHTML =
+    '<p><span class="hl">'+d.name+'</span>（'+numQ+' 题里中了 '+raw[topKey]+' 题） '+d.desc+'</p>'+
+    (d.str?'<p class="root"><b style="color:var(--gold)">优势：</b>'+d.str+'</p>':'')+
+    (d.root?'<p class="root">情绪根源：'+d.root+'</p>':'')+
+    (d.blind?'<p class="blind">盲区：'+d.blind+'</p>':'')+
+    (second&&d2?'<p class="root" style="border-top:1px dashed var(--line);padding-top:8px;margin-top:8px;">其次你也偏向 <b>'+d2.name+'</b>——'+d2.desc+'</p>':'');
+}
+
+/* 人物最高两个维度，用于"为什么你会像TA"缝合段 */
+function top2Dims(c){
+  return DIMS.slice().sort((a,b)=>c.s[b.k]-c.s[a.k]).slice(0,2).map(d=>d.k);
+}
+
+function renderResult(c, sim, runner, user, mTop, dTop, pTop){
+  const dSim = mapSim(sim);            // 显示用契合度
+  const dRunSim = mapSim(runner.sim);  // 第二名显示用
+  // ① 人物卡（速读卡：人物 + 契合度 + 3 标签 + 结论）
+  document.getElementById('r-era').textContent=c.era;
+  document.getElementById('r-emoji').textContent=c.emoji;
+  document.getElementById('r-name').textContent=c.name;
+  document.getElementById('r-title').textContent=c.title;
+  document.getElementById('r-match').textContent=dSim+'%';
+  document.getElementById('r-tags').innerHTML =
+    '<span>'+MOTIVE[mTop].name+'</span><span>'+DECIDE[dTop].name+'</span><span>'+PACE[pTop].name+'</span>';
+  const delta = dSim - dRunSim;
+  document.getElementById('r-verdict').textContent =
+    delta>=4 ? '领先第二名 '+delta+' 分，画像很清晰' : '和第二名咬得很紧——两种气质你可能都有';
+  // 第二名线索（名字可点开小传）
+  document.getElementById('r-runner').innerHTML =
+    '你也有一点点 <b><span class="run-link" onclick="openBio(\''+runner.c.name+'\')">'+runner.c.emoji+' '+runner.c.name+'</span></b> 的影子（契合 '+dRunSim+'%）——每个人都是两种人的混合体。';
+  document.getElementById('r-quote').textContent=c.quote;
+  document.getElementById('r-qfrom').textContent='—— 你和 '+c.name+' 共有的财富人格底色';
+  document.getElementById('r-desc').textContent=c.desc;
+  document.getElementById('r-story').innerHTML='<b>TA 的一个真实故事：</b>'+(STORY[c.name]||'');
+  // 金钱剧本：动机×节奏 组合叙事
+  document.getElementById('r-script').textContent = SCRIPT[mTop+'|'+pTop] || '你的花钱动机和节奏都在中间地带——这说明你在钱上弹性很大，反而最自由。';
+  // 缝合段：用行为标签解释人物匹配
+  const [d1,d2]=top2Dims(c);
+  document.getElementById('r-bridge').innerHTML =
+    '<b>为什么你会像 TA？</b>你是'+MOTIVE[mTop].name+'消费者，做决定偏'+DECIDE[dTop].name+
+    '，花钱节奏是'+PACE[pTop].name+'。这套组合，正好对上了'+c.name+
+    '身上最核心的两样东西——<b>'+DIMPHRASE[d1]+'</b>和<b>'+DIMPHRASE[d2]+
+    '</b>。你们隔着不同的时代和金额，做着同一种选择。';
+  // ② 行为画像（计数制：n/总题数）
+  const NQ = {m: Q.filter(q=>q.cat==='m').length, d: Q.filter(q=>q.cat==='d').length, p: Q.filter(q=>q.cat==='p').length};
+  renderBars('bars-motive','desc-motive', mRaw, MOTIVE, mTop, NQ.m);
+  renderBars('bars-decide','desc-decide', dRaw, DECIDE, dTop, NQ.d);
+  renderBars('bars-pace','desc-pace', paRaw, PACE, pTop, NQ.p);
+  // ③ 打卡清单（可点亮，进度存本地）
+  const habits=[MOTIVE[mTop].habit, DECIDE[dTop].habit, PACE[pTop].habit];
+  const hbox=document.getElementById('r-habits'); hbox.innerHTML='';
+  const prog=document.getElementById('hprog');
+  let done=0;
+  try{ done = (JSON.parse(localStorage.getItem('habit_done')||'0')); if(![0,1,2,3].includes(done)) done=0; }catch(e){ done=0; }
+  const updProg=()=>{
+    prog.innerHTML='已点亮 <b>'+done+'</b> / 3'+(done===3?' · 全点亮了，明天就是第一天 🔥':'');
+    try{ localStorage.setItem('habit_done', JSON.stringify(done)); }catch(e){}
+  };
+  habits.forEach((h,i)=>{
+    const item=document.createElement('div');
+    item.className='hitem'+(i<done?' done':'');
+    item.innerHTML='<span class="hbox"></span><span class="htext">'+h+'</span>';
+    item.onclick=()=>{
+      const was=item.classList.contains('done');
+      item.classList.toggle('done');
+      done = hbox.querySelectorAll('.hitem.done').length;
+      if(!was){ tickSound(); }
+      if(done===3){ showToast('3 条全点亮！别全做，明天先做第 1 条就赢了 🔥'); }
+      updProg();
+    };
+    hbox.appendChild(item);
+  });
+  updProg();
+  // 分享海报卡
+  document.getElementById('s-emoji').textContent=c.emoji;
+  document.getElementById('s-name').textContent=c.name;
+  document.getElementById('s-era').textContent=c.era;
+  document.getElementById('s-quote').textContent=c.quote;
+  document.getElementById('s-tags').innerHTML =
+    '<span>'+MOTIVE[mTop].name+'</span><span>'+DECIDE[dTop].name+'</span><span>'+PACE[pTop].name+'</span>';
+  document.getElementById('s-match').innerHTML='最像 '+c.name+' · 契合 <b>'+dSim+'%</b>';
+  drawRadar(user, c);
+  try{ localStorage.setItem('wealth_persona', JSON.stringify({name:c.name,sim,mTop,dTop,pTop})); }catch(e){}
+}
+
+function drawRadar(user, c){
+  const cv=document.getElementById('radar');
+  const ctx=cv.getContext('2d');
+  const W=cv.width, H=cv.height, cx=W/2, cy=H/2, R=110;
+  ctx.clearRect(0,0,W,H);
+  const n=DIMS.length;
+  for(let ring=1; ring<=4; ring++){
+    const rr=R*ring/4;
+    ctx.beginPath();
+    for(let i=0;i<n;i++){
+      const ang=-Math.PI/2 + i*2*Math.PI/n;
+      const x=cx+rr*Math.cos(ang), y=cy+rr*Math.sin(ang);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle='#e6dcc8'; ctx.lineWidth=1; ctx.stroke();
+  }
+  ctx.fillStyle='#8a7f6c'; ctx.font='12px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(let i=0;i<n;i++){
+    const ang=-Math.PI/2 + i*2*Math.PI/n;
+    const x=cx+R*Math.cos(ang), y=cy+R*Math.sin(ang);
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.strokeStyle='#e6dcc8'; ctx.stroke();
+    const lx=cx+(R+18)*Math.cos(ang), ly=cy+(R+18)*Math.sin(ang);
+    ctx.fillText(DIMS[i].name, lx, ly);
+  }
+  // TA 的画像（灰色虚线多边形）
+  ctx.beginPath();
+  for(let i=0;i<n;i++){
+    const ang=-Math.PI/2 + i*2*Math.PI/n;
+    const v=(c.s[DIMS[i].k]||0)/100;
+    const x=cx+R*v*Math.cos(ang), y=cy+R*v*Math.sin(ang);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.closePath();
+  ctx.fillStyle='rgba(107,97,84,.10)'; ctx.fill();
+  ctx.setLineDash([5,4]); ctx.strokeStyle='#6b6154'; ctx.lineWidth=1.6; ctx.stroke();
+  ctx.setLineDash([]);
+  // 你的画像（金色实线多边形）
+  ctx.beginPath();
+  for(let i=0;i<n;i++){
+    const ang=-Math.PI/2 + i*2*Math.PI/n;
+    const v=user[DIMS[i].k]/100;
+    const x=cx+R*v*Math.cos(ang), y=cy+R*v*Math.sin(ang);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.closePath();
+  ctx.fillStyle='rgba(184,134,11,.22)'; ctx.fill();
+  ctx.strokeStyle='#b8860b'; ctx.lineWidth=2; ctx.stroke();
+  for(let i=0;i<n;i++){
+    const ang=-Math.PI/2 + i*2*Math.PI/n;
+    const v=user[DIMS[i].k]/100;
+    const x=cx+R*v*Math.cos(ang), y=cy+R*v*Math.sin(ang);
+    ctx.beginPath(); ctx.arc(x,y,3,0,2*Math.PI); ctx.fillStyle='#b8860b'; ctx.fill();
+  }
+}
+
+function restart(){ start(); }
+
+/* ===== 人物小传弹窗 ===== */
+function openBio(name){
+  const c = CHARS.find(x=>x.name===name);
+  const b = BIO[name];
+  if(!c || !b) return;
+  document.getElementById('m-emoji').textContent = c.emoji;
+  document.getElementById('m-name').textContent = c.name;
+  document.getElementById('m-era').textContent = c.era + ' · ' + c.title;
+  document.getElementById('m-bio').innerHTML = '<p>'+b.p1+'</p><p>'+b.p2+'</p>';
+  document.getElementById('m-quote').innerHTML = c.quote+'<small>—— '+c.name+'</small>';
+  document.getElementById('bioModal').classList.add('show');
+}
+function closeBio(){
+  document.getElementById('bioModal').classList.remove('show');
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeBio(); });
+
+/* ===== 封面：浮动 emoji + 16 人阵容墙 ===== */
+(function buildCover(){
+  const hero = document.getElementById('heroEmojis');
+  if(hero){ hero.innerHTML = CHARS.slice(0,5).map(c=>'<span>'+c.emoji+'</span>').join(''); }
+  const grid = document.getElementById('lineup');
+  if(grid){
+    grid.innerHTML = CHARS.map(c =>
+      '<div class="lcell" onclick="openBio(\''+c.name+'\')">'+
+      '<div class="le">'+c.emoji+'</div><div class="ln">'+c.name+'</div></div>').join('');
+  }
+})();
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function shareCard(){
+  document.getElementById('scard').scrollIntoView({behavior:'smooth',block:'center'});
+  const link=location.href;
+  const done=()=>showToast('链接已复制！截图上面的海报卡，配上链接发给朋友吧');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(done).catch(()=>showToast('截图海报卡发给朋友即可'));
+  }else{
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=link; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta); done();
+    }catch(e){ showToast('截图海报卡发给朋友即可'); }
+  }
+}
+</script>
+</body>
+</html>
