@@ -280,7 +280,7 @@
     <div class="sb-title">🎁 盲盒已就位</div>
     <div class="sb-sub">你的财富人格藏在这里面 · 用手指刮开封面</div>
     <div class="sb-wrap"><canvas id="scratchCv" width="300" height="400"></canvas></div>
-    <div class="sb-hint">多刮几下 · 刮开一半自动揭晓 🎉</div>
+    <div class="sb-hint">轻刮一两下就好 · 神秘感刚刚好 ✨</div>
   </section>
 
   <!-- 结果页 -->
@@ -865,22 +865,23 @@ function initScratch(){
   ctx.font='14px sans-serif'; ctx.fillStyle='rgba(255,255,255,.75)';
   ctx.fillText('刮开这里 · 看看哪位大佬在等你', W/2, H/2+40);
   ctx.font='12px sans-serif';
-  ctx.fillText('（刮开约一半自动揭晓）', W/2, H/2+66);
-  let drawing=false, revealed=false, strokes=0;
+  ctx.fillText('（轻刮两下自动揭晓）', W/2, H/2+66);
+  let drawing=false, revealed=false, strokes=0, strokeEnds=0;
   const pos=e=>{ const r=cv.getBoundingClientRect(); const t=e.touches?e.touches[0]:e;
     return {x:(t.clientX-r.left)*W/r.width, y:(t.clientY-r.top)*H/r.height}; };
   const check=()=>{ if(revealed) return;
     const d=ctx.getImageData(0,0,W,H).data; let clear=0, total=0;
     for(let i=3;i<d.length;i+=64){ total++; if(d[i]===0) clear++; }
-    if(total && clear/total>0.45){ revealed=true; endReveal(); } };
+    if(total && clear/total>0.12){ revealed=true; endReveal(); } };
   const scratchAt=e=>{ if(!drawing||revealed) return; e.preventDefault();
     const p=pos(e);
     ctx.globalCompositeOperation='destination-out';
-    ctx.beginPath(); ctx.arc(p.x, p.y, 22, 0, 2*Math.PI); ctx.fill();
-    if(++strokes%5===0) check(); };
+    ctx.beginPath(); ctx.arc(p.x, p.y, 26, 0, 2*Math.PI); ctx.fill();
+    if(++strokes%4===0) check(); };
   cv.onpointerdown=e=>{ drawing=true; scratchAt(e); };
   cv.onpointermove=scratchAt;
-  const stop=()=>{ drawing=false; check(); };
+  const stop=()=>{ if(revealed) return; drawing=false; strokeEnds++;
+    if(strokeEnds>=2){ revealed=true; endReveal(); } else check(); };
   cv.onpointerup=stop; cv.onpointerleave=stop;
 }
 function endReveal(){
